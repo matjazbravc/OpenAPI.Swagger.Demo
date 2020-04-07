@@ -1,0 +1,2 @@
+# OpenAPI.Swagger.Demo
+In this comprehensive sample application I would like to show you **how to create JWT secured CRUD OpenAPI** using latest **Asp.Net Core 3.1**, documented with **Swagger** and tested with **Unit** and **Integration tests for secured API**. You will find also how to use **Entity Framework Core** with **SQLite database provider**, how to use **Serilog** for logging requests/responses, how to **generally capture exceptions** with custom middleware, etc.
