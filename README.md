@@ -3,7 +3,7 @@
 In this comprehensive sample application I would like to show you **how to create JWT secured CRUD OpenAPI** using latest **Asp.Net Core 3.1**, documented with **Swagger** and tested with **Unit** and **Integration tests for secured API**. You will find also how to use **Entity Framework Core** with **SQLite database provider**, how to use **Serilog** for logging requests/responses, how to **generally capture exceptions** with custom middleware, etc. So, let’s start step by step.
 
 ## Asp.Net Core 3.1
-It's worth to mention that **Aps.Net Core 3.1 has a Long Term Support (LTS)**. LTS releases are supported for three years after the initial release.
+It's worth to mention that **Asp.Net Core 3.1 has a Long Term Support (LTS)**. LTS releases are supported for three years after the initial release.
 
 ## OpenAPI
 [OpenAPI](https://swagger.io/specification/) is a widely used industry standard specification for documenting APIs and the [Swagger](https://swagger.io/) is a set of tools that implement this specification. For .NET, there is the [Swashbuckle.AspNetCore NuGet](https://www.nuget.org/packages/Swashbuckle.AspNetCore/) package that automatically produces a JSON document and an HTML, Javascript and CSS based documentation of your REST API based on the implementation of your controller classes and the data they return. Latest version of Swashbuckle supports ASP.NET Core 3.1 and [OpenAPI 3](https://swagger.io/specification/), which is the latest version of the specification at the time of creating this demo.
@@ -714,15 +714,6 @@ That's it! Run all tests, and finally results are as expected :)
 Swagger UI looks like this...
 
 ![](res/DemoScreen1.jpg)
-
-This example demonstrate also the following functionalities:
-- JWT secured CRUD OpenAPI
-- OpenAPI Versioning
-- Global Error Handling
-- Logging with [Serilog](https://serilog.net/) sink to file
-- Asynchronous repository Pattern for Entity types
-- [SQLite EF Core Database Provider](https://docs.microsoft.com/en-us/ef/core/providers/sqlite/?tabs=dotnet-core-cli)
-- Integration tests for secured OpenAPI
 
 ## Prerequisites
 - [Visual Studio](https://www.visualstudio.com/vs/community) 2019 16.4.5 or greater
