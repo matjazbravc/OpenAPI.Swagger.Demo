@@ -1,5 +1,4 @@
-﻿using CompanyWebApi.Contracts.Dto;
-using CompanyWebApi.Contracts.Entities;
+﻿using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Controllers.Base;
 using CompanyWebApi.Core.Errors;
 using CompanyWebApi.Services.Authorization;
