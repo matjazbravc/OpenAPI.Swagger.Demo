@@ -1,7 +1,7 @@
-﻿using System;
-using System.Linq;
-using CompanyWebApi.Contracts.Entities;
+﻿using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Persistence.DbContexts;
+using System.Linq;
+using System;
 
 namespace CompanyWebApi.Services
 {

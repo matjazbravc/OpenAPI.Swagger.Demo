@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-using CompanyWebApi.Contracts.Entities;
+﻿using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Persistence.DbContexts;
 using CompanyWebApi.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
+using System;
 
 namespace CompanyWebApi.Services.Repositories
 {

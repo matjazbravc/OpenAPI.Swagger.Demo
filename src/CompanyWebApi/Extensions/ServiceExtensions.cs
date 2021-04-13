@@ -13,7 +13,7 @@ namespace CompanyWebApi.Extensions
 {
     public static class ServiceExtensions
     {
-        // More info: https://docs.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-3.1
+        // More info: https://docs.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-5.0
         public static void AddCorsPolicy(this IServiceCollection serviceCollection, string corsPolicyName)
         {
             serviceCollection.AddCors(options =>

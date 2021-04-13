@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CompanyWebApi.Contracts.Converters;
+﻿using CompanyWebApi.Contracts.Converters;
 using CompanyWebApi.Contracts.Dto;
 using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Controllers.Base;
@@ -11,6 +8,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CompanyWebApi.Controllers
 {

@@ -1,0 +1,9 @@
+version: '3.6'
+
+services:
+  companywebapi:
+    environment:
+        - ASPNETCORE_ENVIRONMENT=Docker
+        - ASPNETCORE_URLS=http://+:80
+    ports:
+        - 10000:80

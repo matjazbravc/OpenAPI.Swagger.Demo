@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using CompanyWebApi.Contracts.Converters;
+﻿using CompanyWebApi.Contracts.Converters;
 using CompanyWebApi.Contracts.Dto;
 using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Controllers.Base;
@@ -9,12 +7,14 @@ using CompanyWebApi.Services.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CompanyWebApi.Controllers
 {
-	[Authorize]
+    [Authorize]
 	[ApiController]
 	[ApiVersion("1.0", Deprecated = true)]
 	[ApiVersion("1.1")]
