@@ -1,12 +1,9 @@
 # OpenAPI.Swagger.Demo
 
-In this comprehensive sample application I would like to show you **how to create JWT secured CRUD OpenAPI** using latest **Asp.Net Core 3.1**, documented with **Swagger** and tested with **Unit** and **Integration tests for secured API**. You will find also how to use **Entity Framework Core** with **SQLite database provider**, how to use **Serilog** for logging requests/responses, how to **generally capture exceptions** with custom middleware, etc. So, let’s start step by step.
-
-## Asp.Net Core 3.1
-It's worth to mention that **Asp.Net Core 3.1 has a Long Term Support (LTS)**. LTS releases are supported for three years after the initial release.
+In this comprehensive sample application I would like to show you **how to create JWT secured CRUD OpenAPI** using latest **ASP.NET Core 5.0**, documented with **Swagger** and tested with **Unit** and **Integration tests for secured API**. You will find also how to use **Entity Framework Core** with **SQLite database provider**, how to use **Serilog** for logging requests/responses, how to **generally capture exceptions** with custom middleware, etc. So, let’s start step by step.
 
 ## OpenAPI
-[OpenAPI](https://swagger.io/specification/) is a widely used industry standard specification for documenting APIs and the [Swagger](https://swagger.io/) is a set of tools that implement this specification. For .NET, there is the [Swashbuckle.AspNetCore NuGet](https://www.nuget.org/packages/Swashbuckle.AspNetCore/) package that automatically produces a JSON document and an HTML, Javascript and CSS based documentation of your REST API based on the implementation of your controller classes and the data they return. Latest version of Swashbuckle supports ASP.NET Core 3.1 and [OpenAPI 3](https://swagger.io/specification/), which is the latest version of the specification at the time of creating this demo.
+[OpenAPI](https://swagger.io/specification/) is a widely used industry standard specification for documenting APIs and the [Swagger](https://swagger.io/) is a set of tools that implement this specification. For .NET, there is the [Swashbuckle.AspNetCore NuGet](https://www.nuget.org/packages/Swashbuckle.AspNetCore/) package that automatically produces a JSON document and an HTML, Javascript and CSS based documentation of your REST API based on the implementation of your controller classes and the data they return. Latest version of Swashbuckle supports ASP.NET Core 5.0 and [OpenAPI 3.1](https://www.openapis.org/blog/2021/02/18/openapi-specification-3-1-released), which is the latest version of the specification at the time of creating this demo.
 
 ## Setup OpenAPI/Swagger
 Once you have installed the [Swashbuckle.AspNetCore NuGet](https://www.nuget.org/packages/Swashbuckle.AspNetCore/) package, you add the Swagger generator to the services collection in the **ConfigureServices** method in **Startup** class (see the "Configure Swagger support" line):
@@ -137,7 +134,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     ...
 }
 ```
-Then you can run your app and navigate to "http://localhost:52330/swagger/v1.1/swagger.json" to download the generated JSON document that describes your API. The web UI is at "http://localhost:52330/index.html" by default. You can set the **RoutePrefix** property of the **SwaggerUIOptions** object that gets passed to the UseSwaggerUI method to change the URL.
+Then you can run your app and navigate to **http://localhost:52330/swagger/v1.1/swagger.json** to download the generated JSON document that describes your API. The web UI is at "http://localhost:52330/index.html" by default. You can set the **RoutePrefix** property of the **SwaggerUIOptions** object that gets passed to the UseSwaggerUI method to change the URL.
 
 ## Setup Serilog
 For logging we are using as usual [Serilog](https://serilog.net/). For this we have to install [Serilog.AspNetCore NuGet](https://www.nuget.org/packages/Serilog.AspNetCore/) package and modify **Program.cs** file like this:
@@ -271,7 +268,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 }
 ```
 ## Setup API Versioning
-Now, in this step we will implement API versioning in Asp.Net Core 3.1 application.
+Now, in this step we will implement API versioning in Asp.Net Core 5.0 application.
 First-of-all, for using API Versioning we have to install [Microsoft.AspNetCore.Mvc.Versioning NuGet](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Versioning/) package. Then we have to add Service in the **ConfigureServices** method in **Startup** class:
 ```csharp
 public void ConfigureServices(IServiceCollection services)
@@ -711,17 +708,78 @@ That's it! Run all tests, and finally results are as expected :)
 
 ![](res/tests.jpg)
 
-Swagger UI looks like this...
+# Run the solution from Docker
+
+## Compose containers
+
+**Docker-compose.yml** file with setup for all the containers looks like this:
+```yml
+version: '3.6'
+
+services:
+  companywebapi:
+    container_name: companywebapi
+    image: ${DOCKER_REGISTRY-}companywebapi
+    restart: on-failure
+    hostname: companywebapi
+    build:
+      context: .
+      dockerfile: src/CompanyWebApi/Dockerfile
+    volumes:
+      - "./sqlite-database-volume:/Database"
+```
+and **Docker-compose.override.yml** file:
+```yml
+version: '3.6'
+
+services:
+  companywebapi:
+    environment:
+        - ASPNETCORE_ENVIRONMENT=Docker
+        - ASPNETCORE_URLS=http://+:80
+    ports:
+        - 10000:80
+```
+To execute compose file, open Powershell, and navigate to the compose file in the root folder. Then execute the following command: **docker-compose up -d --build**. The -d parameter executes the command detached. This means that the containers run in the background and don’t block your Powershell window. To check all running Containers use **docker ps**.
+
+To be able to host a SQLite database file in Docker we have to create Volume
+**"sqlite-database-volume"** which points to the **"Database"** folder from solution.
+![](res/Solution.jpg)
+
+It is worth to mention that environment variable  **ASPNETCORE_ENVIRONMENT=*Docker*** points to **appsettings.*Docker*.json** file where SQLite connection string points to database file:
+```json
+{
+  "ConnectionStrings": {
+    "SqLiteConnectionString": "Data Source=file:Companies.db;Mode=ReadWriteCreate;Cache=Shared"
+  },
+  "Serilog": {
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Information",
+        "System": "Warning"
+      }
+    }
+  }
+}
+```
+
+![](res/Docker.jpg)
+
+Navigating to **[http://localhost:10000/index.html](http://localhost:10000/index.html)** opens Swagger UI and you can play with endpoints.
 
 ![](res/DemoScreen1.jpg)
 
 ## Prerequisites
-- [Visual Studio](https://www.visualstudio.com/vs/community) 2019 16.4.5 or greater
-- [.NET Core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1)
+- [Visual Studio](https://www.visualstudio.com/vs/community) 2019 16.8.4 or greater
+- [.NET SDK 5.0](https://dotnet.microsoft.com/download/dotnet/5.0)
+- [Docker](https://www.docker.com/resources/what-container)
 
 ## Tags & Technologies
-- [ASP.NET Core 3.1](https://docs.microsoft.com/en-us/aspnet/?view=aspnetcore-3.1#pivot=core)
-- [Entity Framework Core 3.1](https://docs.microsoft.com/en-us/ef/core/)
+- [.NET 5.0](https://github.com/dotnet/core/blob/main/release-notes/5.0/5.0.5/5.0.5.md)
+- [Docker](https://www.docker.com/resources/what-container)  
+- [ASP.NET Core 5.0](https://docs.microsoft.com/en-us/aspnet/core/release-notes/aspnetcore-5.0?view=aspnetcore-5.0)
+- [Entity Framework Core 5.0](https://docs.microsoft.com/en-us/ef/core/)
 
 Enjoy!
 
