@@ -744,6 +744,7 @@ To execute compose file, open Powershell, and navigate to the compose file in th
 
 To be able to host a SQLite database file in Docker we have to create Volume
 **"sqlite-database-volume"** which points to the **"Database"** folder from solution.
+
 ![](res/Solution.jpg)
 
 It is worth to mention that environment variable  **ASPNETCORE_ENVIRONMENT=*Docker*** points to **appsettings.*Docker*.json** file where SQLite connection string points to database file:
