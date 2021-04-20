@@ -13,13 +13,11 @@ namespace CompanyWebApi.Tests.UnitTests
     public class CompanyRepositoryTests : IClassFixture<WebApiTestFactory>
     {
         private readonly ILogger _logger;
-        private readonly WebApiTestFactory _factory;
         private readonly ICompanyRepository _companyRepository;
 
         public CompanyRepositoryTests(WebApiTestFactory factory)
         {
-            _factory = factory;
-            _logger = _factory.Services.GetRequiredService<ILogger<WebApiTestFactory>>();
+            _logger = factory.Services.GetRequiredService<ILogger<WebApiTestFactory>>();
             _companyRepository = factory.Services.GetRequiredService<ICompanyRepository>();
         }
 

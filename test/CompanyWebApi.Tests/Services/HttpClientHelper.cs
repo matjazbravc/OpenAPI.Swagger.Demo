@@ -16,7 +16,7 @@ namespace CompanyWebApi.Tests.Services
             Client = httpHttpClient;
         }
 
-        public HttpClient Client { get; private set; }
+        public HttpClient Client { get; }
 
         public async Task<HttpStatusCode> DeleteAsync(string path)
         {
@@ -37,10 +37,10 @@ namespace CompanyWebApi.Tests.Services
 
         public async Task<TOut> PostAsync<TIn, TOut>(string path, TIn content)
         {
-            var json = content == null ?
-                null :
+            var jsonString = content == null ?
+                new StringContent(string.Empty, Encoding.UTF8, "application/json") :
                 new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
-            var response = await Client.PostAsync(path, json).ConfigureAwait(false);
+            var response = await Client.PostAsync(path, jsonString).ConfigureAwait(false);
             return await GetContentAsync<TOut>(response);
         }
 

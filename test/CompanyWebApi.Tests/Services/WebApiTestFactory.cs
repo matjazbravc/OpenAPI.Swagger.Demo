@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System;
@@ -26,7 +25,7 @@ namespace CompanyWebApi.Tests.Services
                 .UseEnvironment("Test") // Specify the environment
                 .ConfigureTestServices(services =>
                 {
-                    // Remove the app's ApplicationDbContext registration
+                    // Remove the ApplicationDbContext registration
                     var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
                     if (descriptor != null)
                     {
