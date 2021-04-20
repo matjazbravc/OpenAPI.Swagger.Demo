@@ -16,6 +16,7 @@ namespace CompanyWebApi.Controllers
     [Authorize]
     [ApiController]
     [ApiVersion("1.1")]
+    [Produces("application/json")]
     [EnableCors("EnableCORS")]
     [Route("api/v{version:apiVersion}/[controller]")]
     public class UsersController : BaseController<UsersController>
@@ -86,7 +87,7 @@ namespace CompanyWebApi.Controllers
         public async Task<ActionResult> DeleteAsync(string userName)
         {
             Logger.LogDebug("DeleteAsync");
-            var user = await _userRepository.GetSingleAsync(user => user.Username == userName).ConfigureAwait(false);
+            var user = await _userRepository.GetSingleAsync(usr => usr.Username == userName).ConfigureAwait(false);
             if (user == null)
             {
                 return NotFound(new NotFoundError("The User was not found"));
@@ -102,10 +103,10 @@ namespace CompanyWebApi.Controllers
         /// if the HTTP Authorization header contains a valid JWT token.
         /// If there is no auth token or the token is invalid then a 401 Unauthorized response is returned.
         /// </remarks>
-        /// GET /api/users/v1.1/getall
+        /// GET /api/users/v1.1/getAll
         /// <returns>List of Users</returns>
         [MapToApiVersion("1.1")]
-        [HttpGet("getall")]
+        [HttpGet("getAll")]
         public async Task<ActionResult<IList<User>>> GetAllAsync()
         {
             Logger.LogDebug("GetAllAsync");
@@ -138,7 +139,7 @@ namespace CompanyWebApi.Controllers
         public async Task<ActionResult<User>> GetAsync(string userName)
         {
             Logger.LogDebug("GetAsync");
-            var user = await _userRepository.GetSingleAsync(user => user.Username.Equals(userName)).ConfigureAwait(false);
+            var user = await _userRepository.GetSingleAsync(usr => usr.Username.Equals(userName)).ConfigureAwait(false);
             if (user == null)
             {
                 return NotFound(new NotFoundError("The User was not found"));

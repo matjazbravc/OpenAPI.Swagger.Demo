@@ -33,7 +33,7 @@ namespace CompanyWebApi.Tests.IntegrationTests
 		[Fact]
 		public async Task CanGetAllCompanies()
 		{
-			var companies = await _httpClientHelper.GetAsync<List<CompanyDto>>(BASE_URL + "getall").ConfigureAwait(false);
+			var companies = await _httpClientHelper.GetAsync<List<CompanyDto>>(BASE_URL + "getAll").ConfigureAwait(false);
 			Assert.Contains(companies, p => p.Name == "Company Two");
 		}
 

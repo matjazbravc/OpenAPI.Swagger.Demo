@@ -18,11 +18,12 @@ namespace CompanyWebApi.Controllers
 	[ApiController]
 	[ApiVersion("1.0", Deprecated = true)]
 	[ApiVersion("1.1")]
+    [Produces("application/json")]
 	[EnableCors("EnableCORS")]
 	[Route("api/v{version:apiVersion}/[controller]")]
 	public class DepartmentsController : BaseController<DepartmentsController>
 	{
-        public IDepartmentRepository DepartmentRepository;
+        private readonly IDepartmentRepository _departmentRepository;
         private readonly IConverter<Department, DepartmentDto> _departmentToDtoConverter;
         private readonly IConverter<IList<Department>, IList<DepartmentDto>> _departmentToDtoListConverter;
 
@@ -30,7 +31,7 @@ namespace CompanyWebApi.Controllers
             IConverter<Department, DepartmentDto> departmentToDtoConverter,
             IConverter<IList<Department>, IList<DepartmentDto>> departmentToDtoListConverter)
         {
-            DepartmentRepository = departmentRepository;
+            _departmentRepository = departmentRepository;
             _departmentToDtoConverter = departmentToDtoConverter;
             _departmentToDtoListConverter = departmentToDtoListConverter;
         }
@@ -54,7 +55,7 @@ namespace CompanyWebApi.Controllers
 			{
 				return BadRequest(new BadRequestError("The department is null"));
 			}
-			await DepartmentRepository.AddAsync(department).ConfigureAwait(false);
+			await _departmentRepository.AddAsync(department).ConfigureAwait(false);
 			return CreatedAtRoute("GetDepartmentById", new { id = department.DepartmentId, version = apiVersion.ToString() }, department);
 		}
 
@@ -72,12 +73,12 @@ namespace CompanyWebApi.Controllers
 		public async Task<IActionResult> DeleteAsync(int id)
 		{
 			Logger.LogDebug("DeleteAsync");
-			var department = await DepartmentRepository.GetSingleAsync(cmp => cmp.DepartmentId == id).ConfigureAwait(false);
+			var department = await _departmentRepository.GetSingleAsync(cmp => cmp.DepartmentId == id).ConfigureAwait(false);
 			if (department == null)
 			{
 				return NotFound(new NotFoundError("The department was not found"));
 			}
-			await DepartmentRepository.DeleteAsync(department).ConfigureAwait(false);
+			await _departmentRepository.DeleteAsync(department).ConfigureAwait(false);
 			return NoContent();
 		}
 
@@ -85,19 +86,19 @@ namespace CompanyWebApi.Controllers
 		/// Get all Departments
 		/// </summary>
 		/// <remarks>This API return list of all Departments</remarks>
-		/// GET api/departments/getall
+		/// GET api/departments/getAll
 		/// <returns>List of Departments</returns>
 		[MapToApiVersion("1.1")]
-		[HttpGet("getall", Name = "GetAllDepartments")]
+		[HttpGet("getAll", Name = "GetAllDepartments")]
 		[ProducesResponseType(200, Type = typeof(IEnumerable<DepartmentDto>))]
 		[ProducesResponseType(404)]
         public async Task<ActionResult<IEnumerable<DepartmentDto>>> GetAllAsync()
         {
 	        Logger.LogDebug("GetAllAsync");
-			var departments = await DepartmentRepository.GetAllAsync().ConfigureAwait(false);
+			var departments = await _departmentRepository.GetAllAsync().ConfigureAwait(false);
 	        if (!departments.Any())
 	        {
-		        return NotFound(new NotFoundError("The companies list is empty"));
+		        return NotFound(new NotFoundError("The departments list is empty"));
 	        }
             var departmentsDto = _departmentToDtoListConverter.Convert(departments);
             return Ok(departmentsDto);
@@ -118,7 +119,7 @@ namespace CompanyWebApi.Controllers
 		public async Task<ActionResult<DepartmentDto>> GetAsync(int id)
 		{
 			Logger.LogDebug("GetAsync");
-			var department = await DepartmentRepository.GetSingleAsync(cmp => cmp.DepartmentId == id).ConfigureAwait(false);
+			var department = await _departmentRepository.GetSingleAsync(cmp => cmp.DepartmentId == id).ConfigureAwait(false);
 			if (department == null)
 			{
 				return NotFound(new NotFoundError("The department was not found"));
@@ -145,7 +146,7 @@ namespace CompanyWebApi.Controllers
 			{
 				return BadRequest(new BadRequestError("The retrieved department is null"));
 			}
-			var updatedDepartment = await DepartmentRepository.UpdateAsync(department).ConfigureAwait(false);
+			var updatedDepartment = await _departmentRepository.UpdateAsync(department).ConfigureAwait(false);
 			if (updatedDepartment == null)
 			{
 				return BadRequest(new BadRequestError("The updated department is null"));

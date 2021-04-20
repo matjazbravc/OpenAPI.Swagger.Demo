@@ -44,13 +44,13 @@ namespace CompanyWebApi.Controllers
         /// <param name="company">Company model</param>
         /// <param name="apiVersion">API version</param>
         [MapToApiVersion("1.1")]
-        [HttpPost("create", Name = nameof(CreateAsync))]
+        [HttpPost("create")]
         [ProducesResponseType(201, Type = typeof(Company))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> CreateAsync([FromBody]Company company, ApiVersion apiVersion)
         {
-            Logger.LogDebug("CreateAsync");
+            Logger.LogDebug(nameof(CreateAsync));
             if (company == null)
             {
                 return BadRequest(new BadRequestError("The company is null"));
@@ -72,7 +72,7 @@ namespace CompanyWebApi.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> DeleteAsync(int id)
         {
-            Logger.LogDebug("DeleteAsync");
+            Logger.LogDebug(nameof(DeleteAsync));
             var company = await _companyRepository.GetSingleAsync(company => company.CompanyId == id).ConfigureAwait(false);
             if (company == null)
             {
@@ -89,12 +89,12 @@ namespace CompanyWebApi.Controllers
         /// GET api/companies/getall
         /// <returns>List of Companies</returns>
         [MapToApiVersion("1.1")]
-        [HttpGet("getall")]
+        [HttpGet("getAll")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<CompanyDto>))]
         [ProducesResponseType(404)]
         public async Task<ActionResult<IEnumerable<CompanyDto>>> GetAllAsync()
         {
-            //Logger.LogDebug("GetAllAsync");
+            Logger.LogDebug(nameof(GetAllAsync));
             var companies = await _companyRepository.GetAllAsync().ConfigureAwait(false);
             if (!companies.Any())
             {
@@ -116,8 +116,8 @@ namespace CompanyWebApi.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetByIdAsync(int id)
         {
-            Logger.LogDebug("GetByIdAsync");
-            var company = await _companyRepository.GetSingleAsync(company => company.CompanyId == id).ConfigureAwait(false);
+            Logger.LogDebug(nameof(GetByIdAsync));
+            var company = await _companyRepository.GetSingleAsync(comp => comp.CompanyId == id).ConfigureAwait(false);
             if (company == null)
             {
                 return NotFound(new NotFoundError("The company was not found"));
@@ -129,17 +129,18 @@ namespace CompanyWebApi.Controllers
         /// <summary>
         /// Update Company
         /// </summary>
+        /// <remarks>This API updates a company</remarks>
         /// POST /api/companies/update/{company}
         /// <param name="company">Company model</param>
         /// <param name="apiVersion">API version</param>
         /// <returns>Returns updated Company</returns>
         [MapToApiVersion("1.1")]
-        [HttpPost("update", Name = nameof(UpdateAsync))]
+        [HttpPost("update")]
         [ProducesResponseType(201, Type = typeof(CompanyDto))]
         [ProducesResponseType(400)]
         public async Task<IActionResult> UpdateAsync([FromBody]Company company, ApiVersion apiVersion)
         {
-            Logger.LogDebug("UpdateAsync");
+            Logger.LogDebug(nameof(UpdateAsync));
             if (company == null)
             {
                 return BadRequest(new BadRequestError("The retrieved company is null"));

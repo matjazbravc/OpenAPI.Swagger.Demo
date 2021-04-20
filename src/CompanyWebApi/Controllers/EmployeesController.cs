@@ -18,11 +18,12 @@ namespace CompanyWebApi.Controllers
 	[ApiController]
 	[ApiVersion("1.0", Deprecated = true)]
 	[ApiVersion("1.1")]
+    [Produces("application/json")]
 	[EnableCors("EnableCORS")]
 	[Route("api/v{version:apiVersion}/[controller]")]
 	public class EmployeesController : BaseController<EmployeesController>
 	{
-		public IEmployeeRepository EmployeeRepository;
+        private readonly IEmployeeRepository _employeeRepository;
         private readonly IConverter<Employee, EmployeeDto> _employeeToDtoConverter;
         private readonly IConverter<IList<Employee>, IList<EmployeeDto>> _employeeToDtoListConverter;
 
@@ -30,7 +31,7 @@ namespace CompanyWebApi.Controllers
             IConverter<Employee,EmployeeDto> employeeToDtoConverter,
             IConverter<IList<Employee>, IList<EmployeeDto>> employeeToDtoListConverter)
         {
-            EmployeeRepository = employeeRepository;
+            _employeeRepository = employeeRepository;
             _employeeToDtoConverter = employeeToDtoConverter;
             _employeeToDtoListConverter = employeeToDtoListConverter;
         }
@@ -54,7 +55,7 @@ namespace CompanyWebApi.Controllers
 			{
 				return BadRequest(new BadRequestError("The employee is null"));
 			}
-			await EmployeeRepository.AddAsync(employee);
+			await _employeeRepository.AddAsync(employee);
 			return CreatedAtRoute("GetEmployeeById", new { id = employee.EmployeeId, version = apiVersion.ToString() }, employee);
 		}
 
@@ -72,12 +73,12 @@ namespace CompanyWebApi.Controllers
 		public async Task<IActionResult> DeleteAsync(int id)
 		{
 			Logger.LogDebug("DeleteAsync");
-			var employee = await EmployeeRepository.GetSingleAsync(emp => emp.EmployeeId == id);
+			var employee = await _employeeRepository.GetSingleAsync(emp => emp.EmployeeId == id);
 			if (employee == null)
 			{
 				return NotFound(new NotFoundError("The employee was not found"));
 			}
-			await EmployeeRepository.DeleteAsync(employee);
+			await _employeeRepository.DeleteAsync(employee);
 			return NoContent();
 		}
 
@@ -88,13 +89,13 @@ namespace CompanyWebApi.Controllers
 		/// GET api/employees/getall
 		/// <returns>List of Employees</returns>
 		[MapToApiVersion("1.1")]
-		[HttpGet("getall", Name = "GetAllEmployees")]
+		[HttpGet("getAll", Name = "GetAllEmployees")]
 		[ProducesResponseType(200, Type = typeof(IEnumerable<EmployeeDto>))]
 		[ProducesResponseType(404)]
 		public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetAllAsync()
 		{
 			Logger.LogDebug("GetAllAsync");
-			var employees = await EmployeeRepository.GetAllAsync().ConfigureAwait(false);
+			var employees = await _employeeRepository.GetAllAsync().ConfigureAwait(false);
 			if (!employees.Any())
 			{
 				return NotFound(new NotFoundError("The employees list is empty"));
@@ -118,7 +119,7 @@ namespace CompanyWebApi.Controllers
 		public async Task<ActionResult<EmployeeDto>> GetAsync(int id)
 		{
 			Logger.LogDebug("GetAsync");
-			var employee = await EmployeeRepository.GetSingleAsync(emp => emp.EmployeeId == id);
+			var employee = await _employeeRepository.GetSingleAsync(emp => emp.EmployeeId == id);
 			if (employee == null)
 			{
 				return NotFound(new NotFoundError("The employee was not found"));
@@ -145,7 +146,7 @@ namespace CompanyWebApi.Controllers
 			{
 				return BadRequest(new BadRequestError("The retrieved employee is null"));
 			}
-			var updatedEmployee = await EmployeeRepository.UpdateAsync(employee);
+			var updatedEmployee = await _employeeRepository.UpdateAsync(employee);
 			if (updatedEmployee == null)
 			{
 				return BadRequest(new BadRequestError("The updated employee is null"));
