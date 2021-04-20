@@ -15,13 +15,13 @@ namespace CompanyWebApi.Persistence.Repositories
 	/// <typeparam name="TEntity">Entity type</typeparam>
 	public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : class
 	{
-		protected readonly DbContext _databaseContext;
-		protected readonly DbSet<TEntity> _databaseSet;
+		protected readonly DbContext DatabaseContext;
+		protected readonly DbSet<TEntity> DatabaseSet;
 
 		protected BaseRepository(DbContext context)
 		{
-			_databaseContext = context ?? throw new ArgumentException(nameof(context));
-			_databaseSet = _databaseContext.Set<TEntity>();
+			DatabaseContext = context ?? throw new ArgumentException(nameof(context));
+			DatabaseSet = DatabaseContext.Set<TEntity>();
 		}
 
         /// <summary>
@@ -32,8 +32,8 @@ namespace CompanyWebApi.Persistence.Repositories
         /// <returns></returns>
 		public virtual async Task<TEntity> AddAsync(TEntity entity, CancellationToken cancellationToken = default)
 		{
-			await _databaseSet.AddAsync(entity, cancellationToken).ConfigureAwait(false);
-			await _databaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+			await DatabaseSet.AddAsync(entity, cancellationToken).ConfigureAwait(false);
+			await DatabaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 			return entity;
 		}
 
@@ -45,8 +45,8 @@ namespace CompanyWebApi.Persistence.Repositories
         /// <returns></returns>
 		public virtual async Task<int> AddAsync(IList<TEntity> entities, CancellationToken cancellationToken = default)
 		{
-			await _databaseSet.AddRangeAsync(entities, cancellationToken).ConfigureAwait(false);
-			return await _databaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+			await DatabaseSet.AddRangeAsync(entities, cancellationToken).ConfigureAwait(false);
+			return await DatabaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 		}
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace CompanyWebApi.Persistence.Repositories
         /// <returns></returns>
 		public virtual async Task<int> CountAsync(bool disableTracking = true, CancellationToken cancellationToken = default)
 		{
-			IQueryable<TEntity> query = _databaseSet;
+			IQueryable<TEntity> query = DatabaseSet;
 			if (disableTracking)
 			{
 				query = query.AsNoTracking();
@@ -73,8 +73,8 @@ namespace CompanyWebApi.Persistence.Repositories
         /// <returns></returns>
 		public virtual async Task<int> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
 		{
-			_databaseSet.Remove(entity);
-			return await _databaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+			DatabaseSet.Remove(entity);
+			return await DatabaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -89,7 +89,7 @@ namespace CompanyWebApi.Persistence.Repositories
 		/// var owner = await FindByConditionAsync(o => o.Id.Equals(ownerId));
 		public virtual async Task<IList<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate, bool disableTracking = true, CancellationToken cancellationToken = default)
 		{
-			IQueryable<TEntity> query = _databaseSet;
+			IQueryable<TEntity> query = DatabaseSet;
 			if (disableTracking)
 			{
 				query = query.AsNoTracking();
@@ -105,7 +105,7 @@ namespace CompanyWebApi.Persistence.Repositories
         /// <returns></returns>
 		public virtual async Task<IList<TEntity>> GetAllAsync(bool disableTracking = true, CancellationToken cancellationToken = default)
         {
-            IQueryable<TEntity> query = _databaseSet;
+            IQueryable<TEntity> query = DatabaseSet;
             if (disableTracking)
             {
                 query = query.AsNoTracking();
@@ -122,7 +122,7 @@ namespace CompanyWebApi.Persistence.Repositories
         /// <returns></returns>
 		public virtual async Task<TEntity> GetSingleAsync(Expression<Func<TEntity, bool>> predicate, bool disableTracking = true, CancellationToken cancellationToken = default)
 		{
-			IQueryable<TEntity> query = _databaseSet;
+			IQueryable<TEntity> query = DatabaseSet;
 			if (disableTracking)
 			{
 				query = query.AsNoTracking();
@@ -144,13 +144,12 @@ namespace CompanyWebApi.Persistence.Repositories
 							   let keyAttr = property.GetCustomAttributes(typeof(KeyAttribute), false).Cast<KeyAttribute>().FirstOrDefault()
 							   where keyAttr != null
 							   select property).FirstOrDefault();
-			if (keyProperty == null || 
-			    !(_databaseContext.Find(entity.GetType(), keyProperty.GetValue(entity)) is TEntity existing))
+			if (keyProperty == null || !(await DatabaseContext.FindAsync(entity.GetType(), keyProperty.GetValue(entity)) is TEntity existing))
 			{
 				return null;
 			}
-			_databaseContext.Entry(existing).CurrentValues.SetValues(entity);
-			await _databaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+			DatabaseContext.Entry(existing).CurrentValues.SetValues(entity);
+			await DatabaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 			return existing;
 		}
 	}

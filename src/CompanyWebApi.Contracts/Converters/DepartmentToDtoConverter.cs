@@ -9,11 +9,11 @@ namespace CompanyWebApi.Contracts.Converters
 	/// <summary>
 	/// Department to DepartmentDto converter
 	/// </summary>
-	public class DepartmentToDtoCoverter : IConverter<Department, DepartmentDto>, IConverter<IList<Department>, IList<DepartmentDto>>
+	public class DepartmentToDtoConverter : IConverter<Department, DepartmentDto>, IConverter<IList<Department>, IList<DepartmentDto>>
 	{
-		private readonly ILogger<DepartmentToDtoCoverter> _logger;
+		private readonly ILogger<DepartmentToDtoConverter> _logger;
 
-		public DepartmentToDtoCoverter(ILogger<DepartmentToDtoCoverter> logger)
+		public DepartmentToDtoConverter(ILogger<DepartmentToDtoConverter> logger)
 		{
 			_logger = logger;
 		}

@@ -34,11 +34,11 @@ namespace CompanyWebApi.Persistence.DbContexts
         {
             base.OnModelCreating(modelBuilder);
             // Create EF entities and relations
-            new CompanyConfiguration(modelBuilder.Entity<Company>());
-	        new EmployeeConfiguration(modelBuilder.Entity<Employee>());
-			new EmployeeAddressConfiguration(modelBuilder.Entity<EmployeeAddress>());
-	        new DepartmentConfiguration(modelBuilder.Entity<Department>());
-	        new UserConfiguration(modelBuilder.Entity<User>());
+            _ = new CompanyConfiguration(modelBuilder.Entity<Company>());
+            _ = new EmployeeConfiguration(modelBuilder.Entity<Employee>());
+            _ = new EmployeeAddressConfiguration(modelBuilder.Entity<EmployeeAddress>());
+            _ = new DepartmentConfiguration(modelBuilder.Entity<Department>());
+            _ = new UserConfiguration(modelBuilder.Entity<User>());
         }
 
         /// <summary>

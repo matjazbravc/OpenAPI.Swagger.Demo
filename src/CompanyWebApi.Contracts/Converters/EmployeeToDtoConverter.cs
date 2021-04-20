@@ -9,11 +9,11 @@ namespace CompanyWebApi.Contracts.Converters
 	/// <summary>
 	/// Employee to EmployeeDto converter
 	/// </summary>
-	public class EmployeeToDtoCoverter : IConverter<Employee, EmployeeDto>, IConverter<IList<Employee>, IList<EmployeeDto>>
+	public class EmployeeToDtoConverter : IConverter<Employee, EmployeeDto>, IConverter<IList<Employee>, IList<EmployeeDto>>
 	{
-		private readonly ILogger<EmployeeToDtoCoverter> _logger;
+		private readonly ILogger<EmployeeToDtoConverter> _logger;
 
-		public EmployeeToDtoCoverter(ILogger<EmployeeToDtoCoverter> logger)
+		public EmployeeToDtoConverter(ILogger<EmployeeToDtoConverter> logger)
 		{
 			_logger = logger;
 		}

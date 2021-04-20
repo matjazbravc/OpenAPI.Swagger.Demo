@@ -19,7 +19,7 @@ namespace CompanyWebApi.Services.Repositories
 
         public override async Task<IList<User>> GetAllAsync(bool disableTracking = true, CancellationToken cancellationToken = default(CancellationToken))
         {
-            IQueryable<User> query = _databaseSet;
+            IQueryable<User> query = DatabaseSet;
             if (disableTracking)
             {
                 query = query.AsNoTracking();
@@ -33,7 +33,7 @@ namespace CompanyWebApi.Services.Repositories
         // https://www.learnentityframeworkcore.com/dbset/querying-data
         public override async Task<User> GetSingleAsync(Expression<Func<User, bool>> predicate, bool disableTracking = true, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var user = await _databaseSet
+            var user = await DatabaseSet
                 .Include(cmp => cmp.Employee).ThenInclude(emp => emp.EmployeeAddress)
                 .Include(cmp => cmp.Employee).ThenInclude(emp => emp.Department)
                 .AsNoTracking()

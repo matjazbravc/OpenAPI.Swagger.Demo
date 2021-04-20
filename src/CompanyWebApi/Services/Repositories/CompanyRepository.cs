@@ -23,7 +23,7 @@ namespace CompanyWebApi.Services.Repositories
             Company company = null;
             try
             {
-                company = await _databaseSet
+                company = await DatabaseSet
                     .Include(cmp => cmp.Employees).ThenInclude(emp => emp.EmployeeAddress)
                     .Include(cmp => cmp.Employees).ThenInclude(emp => emp.Department)
                     .Include(cmp => cmp.Employees).ThenInclude(emp => emp.User)
@@ -39,7 +39,7 @@ namespace CompanyWebApi.Services.Repositories
 
         public override async Task<IList<Company>> GetAllAsync(bool disableTracking = true, CancellationToken cancellationToken = default(CancellationToken))
         {
-            IQueryable<Company> query = _databaseSet;
+            IQueryable<Company> query = DatabaseSet;
             if (disableTracking)
             {
                 query = query.AsNoTracking();

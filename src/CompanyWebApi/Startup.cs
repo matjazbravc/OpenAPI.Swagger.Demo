@@ -216,12 +216,12 @@ namespace CompanyWebApi
             services.AddScoped<IUserRepository, UserRepository>();
 
             // Entity to Dto Converters
-            services.AddTransient<IConverter<Company, CompanyDto>, CompanyToDtoCoverter>();
-            services.AddTransient<IConverter<IList<Company>, IList<CompanyDto>>, CompanyToDtoCoverter>();
-            services.AddTransient<IConverter<Department, DepartmentDto>, DepartmentToDtoCoverter>();
-            services.AddTransient<IConverter<IList<Department>, IList<DepartmentDto>>, DepartmentToDtoCoverter>();
-            services.AddTransient<IConverter<Employee, EmployeeDto>, EmployeeToDtoCoverter>();
-            services.AddTransient<IConverter<IList<Employee>, IList<EmployeeDto>>, EmployeeToDtoCoverter>();
+            services.AddTransient<IConverter<Company, CompanyDto>, CompanyToDtoConverter>();
+            services.AddTransient<IConverter<IList<Company>, IList<CompanyDto>>, CompanyToDtoConverter>();
+            services.AddTransient<IConverter<Department, DepartmentDto>, DepartmentToDtoConverter>();
+            services.AddTransient<IConverter<IList<Department>, IList<DepartmentDto>>, DepartmentToDtoConverter>();
+            services.AddTransient<IConverter<Employee, EmployeeDto>, EmployeeToDtoConverter>();
+            services.AddTransient<IConverter<IList<Employee>, IList<EmployeeDto>>, EmployeeToDtoConverter>();
         }
     }
 }

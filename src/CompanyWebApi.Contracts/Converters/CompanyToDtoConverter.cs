@@ -9,11 +9,11 @@ namespace CompanyWebApi.Contracts.Converters
 	/// <summary>
 	/// Company to CompanyDto converter
 	/// </summary>
-	public class CompanyToDtoCoverter : IConverter<Company, CompanyDto>, IConverter<IList<Company>, IList<CompanyDto>>
+	public class CompanyToDtoConverter : IConverter<Company, CompanyDto>, IConverter<IList<Company>, IList<CompanyDto>>
 	{
-		private readonly ILogger<CompanyToDtoCoverter> _logger;
+		private readonly ILogger<CompanyToDtoConverter> _logger;
 
-		public CompanyToDtoCoverter(ILogger<CompanyToDtoCoverter> logger)
+		public CompanyToDtoConverter(ILogger<CompanyToDtoConverter> logger)
 		{
 			_logger = logger;
 		}
