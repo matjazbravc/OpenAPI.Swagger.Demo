@@ -10,6 +10,12 @@
     <Optimize>false</Optimize>
     <DefineConstants>TRACE</DefineConstants>
     <DocumentationFile>bin\Debug\netcoreapp3.1\CompanyWebApi.xml</DocumentationFile>
+    <WarningsAsErrors>NU1605</WarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Release\netcoreapp3.1\CompanyWebApi.xml</DocumentationFile>
+    <NoWarn>1701;1702;1705;1591</NoWarn>
+    <WarningsAsErrors>NU1605</WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.5" />
