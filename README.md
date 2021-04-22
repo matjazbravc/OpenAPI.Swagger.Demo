@@ -134,7 +134,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     ...
 }
 ```
-Then you can run your app and navigate to **http://localhost:52330/swagger/v1.1/swagger.json** to download the generated JSON document that describes your API. The web UI is at "http://localhost:52330/index.html" by default. You can set the **RoutePrefix** property of the **SwaggerUIOptions** object that gets passed to the UseSwaggerUI method to change the URL.
+Then you can run your app and navigate to **http://localhost:52330/swagger/v1.1/swagger.json** to download the generated JSON document that describes your API. The web UI is at "http://localhost:52330/swagger" by default. You can set the **RoutePrefix** property of the **SwaggerUIOptions** object that gets passed to the UseSwaggerUI method to change the URL.
 
 ## Setup Serilog
 For logging we are using as usual [Serilog](https://serilog.net/). For this we have to install [Serilog.AspNetCore NuGet](https://www.nuget.org/packages/Serilog.AspNetCore/) package and modify **Program.cs** file like this:
@@ -767,7 +767,7 @@ It is worth to mention that environment variable  **ASPNETCORE_ENVIRONMENT=*Dock
 
 ![](res/Docker.jpg)
 
-Navigating to **[http://localhost:10000/index.html](http://localhost:10000/index.html)** opens Swagger UI and you can play with endpoints.
+Navigating to **[http://localhost:10000/swagger](http://localhost:10000/swagger)** opens Swagger UI and you can play with endpoints.
 
 ![](res/DemoScreen1.jpg)
 
