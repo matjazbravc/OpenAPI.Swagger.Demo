@@ -1,11 +1,11 @@
-version: '3.6'
+version: '3.9'
 
 services:
   companywebapi:
-    container_name: companywebapi
+    container_name: CompanyWebApi
     image: ${DOCKER_REGISTRY-}companywebapi
     restart: on-failure
-    hostname: companywebapi
+    hostname: CompanyWebApi
     build:
       context: .
       dockerfile: src/CompanyWebApi/Dockerfile

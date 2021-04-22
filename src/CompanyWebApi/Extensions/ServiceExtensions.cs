@@ -1,6 +1,5 @@
-﻿using CompanyWebApi.Middleware;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc.Abstractions;
+﻿using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.OpenApi.Models;
@@ -13,20 +12,37 @@ namespace CompanyWebApi.Extensions
 {
     public static class ServiceExtensions
     {
-        // More info: https://docs.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-5.0
-        public static void AddCorsPolicy(this IServiceCollection serviceCollection, string corsPolicyName)
+        // Add API Versioning
+        // The default version is 1.1
+        // And we're going to read the version number from the media type
+        // Incoming requests should have a accept header like this: Accept: application/json;v=1.1
+        public static void AddApiVersioningExtension(this IServiceCollection services)
         {
-            serviceCollection.AddCors(options =>
+            services.AddApiVersioning(config =>
             {
-                options.AddPolicy(corsPolicyName,
-                    builder => builder
-                        .AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader());
+                // Default API Version
+                config.DefaultApiVersion = new ApiVersion(1, 1);
+                // use default version when version is not specified
+                config.AssumeDefaultVersionWhenUnspecified = true;
+                // Advertise the API versions supported for the particular endpoint
+                config.ReportApiVersions = true;
             });
         }
 
-        public static void ConfigureSwagger(this IServiceCollection serviceCollection, string apiName, bool includeXmlDocumentation = true)
+        // More info: https://docs.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-3.1
+        public static void AddCorsPolicy(this IServiceCollection services, string policyName)
+        {
+            services.AddCors(options =>
+            {
+                options.AddPolicy(policyName,
+                    builder => builder.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .WithExposedHeaders("X-Pagination"));
+            });
+        }
+
+        public static void AddSwaggerExtension(this IServiceCollection serviceCollection, string apiName)
         {
             serviceCollection.AddSwaggerGen(options =>
             {
@@ -84,7 +100,7 @@ namespace CompanyWebApi.Extensions
                                     Id = "Bearer"
                                 }
                             },
-                            new string[] {}
+                            Array.Empty<string>()
 
                     }
                 });
@@ -92,33 +108,16 @@ namespace CompanyWebApi.Extensions
                 {
                     var actionApiVersionModel = apiDesc.ActionDescriptor.GetApiVersionModel();
                     // Would mean this action is unversioned and should be included everywhere
-                    if (actionApiVersionModel == null)
-                    {
-                        return true;
-                    }
                     return actionApiVersionModel.DeclaredApiVersions.Any() ? actionApiVersionModel.DeclaredApiVersions.Any(v => $"v{v.ToString()}" == docName) : actionApiVersionModel.ImplementedApiVersions.Any(v => $"v{v.ToString()}" == docName);
                 });
-                if (includeXmlDocumentation)
+                var xmlDocFile = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
+                if (File.Exists(xmlDocFile))
                 {
-                    var xmlDocFile = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
-                    if (File.Exists(xmlDocFile))
-                    {
-                        options.IncludeXmlComments(xmlDocFile);
-                    }
+                    options.IncludeXmlComments(xmlDocFile);
                 }
                 options.DescribeAllParametersInCamelCase();
                 options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
             });
-        }
-
-        public static IApplicationBuilder UseApiLogging(this IApplicationBuilder builder)
-        {
-            return builder.UseMiddleware<ApiLoggingMiddleware>();
-        }
-
-        public static IApplicationBuilder UseGlobalExceptionHandling(this IApplicationBuilder builder)
-        {
-            return builder.UseMiddleware<ExceptionHandlingMiddleware>();
         }
     }
 }

@@ -2,25 +2,33 @@
 
 namespace CompanyWebApi.Core.Errors.Base
 {
-	[ExcludeFromCodeCoverage]
-	public class ApiError
-	{
-		public ApiError(int statusCode, string statusDescription)
-		{
-			StatusCode = statusCode;
-			StatusDescription = statusDescription;
-		}
+    [ExcludeFromCodeCoverage]
+    public class ApiError
+    {
+        public ApiError(int statusCode, string statusDescription)
+        {
+            StatusCode = statusCode;
+            StatusDescription = statusDescription;
+        }
 
-		public ApiError(int statusCode, string statusDescription, string message)
-			: this(statusCode, statusDescription)
-		{
-			Message = message;
-		}
+        public ApiError(int statusCode, string statusDescription, string message)
+            : this(statusCode, statusDescription)
+        {
+            Message = message;
+        }
 
-		public string Message { get; private set; }
+        public ApiError(int statusCode, string statusDescription, string message, string requestPath)
+            : this(statusCode, statusDescription, message)
+        {
+            RequestPath = requestPath;
+        }
 
-		public int StatusCode { get; }
+        public string Message { get; private set; }
 
-		public string StatusDescription { get; }
-	}
+        public int StatusCode { get; }
+
+        public string StatusDescription { get; }
+
+        public string RequestPath { get; }
+    }
 }

@@ -4,24 +4,23 @@ using CompanyWebApi.Contracts.Dto;
 using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Core.Auth;
 using CompanyWebApi.Extensions;
+using CompanyWebApi.Middleware;
 using CompanyWebApi.Persistence.DbContexts;
-using CompanyWebApi.Services;
 using CompanyWebApi.Services.Authorization;
 using CompanyWebApi.Services.Repositories;
+using CompanyWebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
-using System;
+using Serilog;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using System;
 
 namespace CompanyWebApi
 {
@@ -53,92 +52,69 @@ namespace CompanyWebApi
             // Configure JWT authentication
             ConfigureAuthentication(services);
 
+            services.AddCorsPolicy("EnableCORS");
+
             services.AddControllers()
                 .ConfigureApiBehaviorOptions(options =>
                 {
                     options.SuppressConsumesConstraintForFormFileParameters = true;
                     options.SuppressInferBindingSourcesForParameters = true;
-                    options.SuppressModelStateInvalidFilter = true; // To disable the automatic 400 behavior, set the SuppressModelStateInvalidFilter property to true
+                    options.SuppressModelStateInvalidFilter =
+                        true; // To disable the automatic 400 behavior, set the SuppressModelStateInvalidFilter property to true
                     options.SuppressMapClientErrors = true;
                     options.ClientErrorMapping[404].Link = "https://httpstatuses.com/404";
                 })
                 .AddNewtonsoftJson(options =>
                     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
                 );
+            services.AddApiVersioningExtension();
+            services.AddSwaggerExtension(API_NAME);
 
             // Add Database Context
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("SqLiteConnectionString")));
-
-            // Add API Versioning
-            // The default version is 1.1
-            // And we're going to read the version number from the media type
-            // Incoming requests should have a accept header like this: Accept: application/json;v=1.1
-            services.AddApiVersioning(o =>
-            {
-                o.DefaultApiVersion = new ApiVersion(1, 1); // Specify the default api version
-                o.AssumeDefaultVersionWhenUnspecified = true; // Assume that the caller wants the default version if they don't specify
-                o.ApiVersionReader = new MediaTypeApiVersionReader(); // Read the version number from the accept header
-                o.ReportApiVersions = true; // Return Api version in response header
-            });
-
-            // Configure Swagger support
-            services.ConfigureSwagger(API_NAME);
-
-            // Configure CORS
-            services.AddCorsPolicy("EnableCORS");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             // Configure Database context
-            using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()?.CreateScope())
             {
-                var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var context = serviceScope?.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 //context.Database.EnsureDeleted();
-                context.Database.EnsureCreated();
+                context?.Database.EnsureCreated();
                 SeedData.Initialize(context);
             }
 
-            // Enable middleware to serve generated Swagger as a JSON endpoint.
-            app.UseSwagger();
+            app.UseExceptionHandler("/Error");
 
-            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint
-            // https://docs.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-3.1&tabs=visual-studio
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1.1/swagger.json", $"{API_NAME} v1.1");
-                c.SwaggerEndpoint("/swagger/v1.0/swagger.json", $"{API_NAME} v1.0");
-                c.RoutePrefix = string.Empty;
-            });
+            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+            app.UseHsts();
 
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                // Read more: https://docs.microsoft.com/en-us/aspnet/core/security/enforcing-ssl?view=aspnetcore-3.1&tabs=visual-studio
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
+            // For elevated security, it is recommended to remove this middleware and set your server to only listen on https. 
+            // A slightly less secure option would be to redirect http to 400, 505, etc.
+            app.UseHttpsRedirection();
 
-            // Global Exception handling middleware
-            app.UseGlobalExceptionHandling();
+            app.UseCors("EnableCORS");
+
+            app.UseSerilogRequestLogging();
+            app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseErrorHandlingMiddleware();
 
             // Request/Response logging middleware
             app.UseApiLogging();
-
-            app.UseRouting();
-            app.UseCors("EnableCORS");
-            app.UseAuthentication();
-            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+
+            app.UseSwaggerExtension();
         }
 
         protected virtual void ConfigureAuthentication(IServiceCollection services)
@@ -202,6 +178,10 @@ namespace CompanyWebApi
 
         protected virtual void RegisterServices(IServiceCollection services)
         {
+            // Register middlewares
+            services.AddTransient<ApiLogging>();
+            services.AddTransient<ErrorHandlerMiddleware>();
+
             // Services
             services.AddTransient<IJwtTokenHandler, JwtTokenHandler>();
             services.AddTransient<IJwtFactory, JwtFactory>();
