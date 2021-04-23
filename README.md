@@ -13,8 +13,8 @@ public void ConfigureServices(IServiceCollection services)
 {
     ...
     
-    // Configure Swagger support (uses ServiceCollection extensions)
-    services.ConfigureSwagger(API_NAME);
+    // Configure Swagger support
+    services.AddSwagger();;
     
     ...
 }
@@ -25,90 +25,76 @@ public static class ServiceExtensions
 {
     ...
     
-    public static void ConfigureSwagger(this IServiceCollection serviceCollection, string apiName, bool includeXmlDocumentation = true)
-    {
-        serviceCollection.AddSwaggerGen(options =>
+        public static void AddSwagger(this IServiceCollection services)
         {
-            options.SwaggerDoc("v1.0", new OpenApiInfo
-            {
-                Title = $"{apiName} v1.0",
-                Version = "v1.0",
-                Description = "*** DEPRECATED WEB API VERSION ***",
-                Contact = new OpenApiContact
-                {
-                    Name = "Matjaz Bravc",
-                    Email = "matjaz.bravc@gmail.com",
-                    Url = new Uri("https://matjazbravc.github.io/")
-                },
-                License = new OpenApiLicense
-                {
-                    Name = "Use under LICENSE...",
-                    Url = new Uri("https://example.com/license")
-                }
-            });
-            options.SwaggerDoc("v1.1", new OpenApiInfo
-            {
-                Title = $"{apiName} v1.1",
-                Version = "v1.1",
-                Description = "DEFAULT WEB API",
-                Contact = new OpenApiContact
-                {
-                    Name = "Matjaz Bravc",
-                    Email = "matjaz.bravc@gmail.com",
-                    Url = new Uri("https://matjazbravc.github.io/")
-                },
-                License = new OpenApiLicense
-                {
-                    Name = "Use under LICENSE...",
-                    Url = new Uri("https://example.com/license")
-                }
-            });
-            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-            {
-                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-                Name = "Authorization",
-                Scheme = "Bearer",
-                BearerFormat = "JWT",
-                In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey
-            });
-            options.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                {
-                      new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
-                        },
-                        new string[] {}
+            var configuration = services
+                .BuildServiceProvider()
+                .GetService<IConfiguration>();
 
-                }
-            });
-            options.DocInclusionPredicate((docName, apiDesc) =>
+            var swaggerOptions = ConfigurationHelper.GetSwaggerOptions(configuration);
+            var swaggerVersions = ConfigurationHelper.GetSwaggerVersions(configuration);
+
+            services.AddSwaggerGen(options =>
             {
-                var actionApiVersionModel = apiDesc.ActionDescriptor.GetApiVersionModel();
-                // Would mean this action is unversioned and should be included everywhere
-                if (actionApiVersionModel == null)
+                foreach (var swaggerVersion in swaggerVersions.OrderByDescending(v => v.Version))
                 {
-                    return true;
+                    options.SwaggerDoc(swaggerVersion.Version, new OpenApiInfo
+                    {
+                        Title = swaggerVersion.Title,
+                        Version = swaggerVersion.Version,
+                        Description = swaggerVersion.Description,
+                        Contact = new OpenApiContact
+                        {
+                            Name = swaggerOptions.ContactName,
+                            Email = swaggerOptions.ContactEmail,
+                            Url = new Uri(swaggerOptions.ContactUrl)
+                        },
+                        License = new OpenApiLicense
+                        {
+                            Name = swaggerOptions.LicenseName,
+                            Url = new Uri(swaggerOptions.LicenseUrl)
+                        }
+                    });
                 }
-                return actionApiVersionModel.DeclaredApiVersions.Any() ? actionApiVersionModel.DeclaredApiVersions.Any(v => $"v{v.ToString()}" == docName) : actionApiVersionModel.ImplementedApiVersions.Any(v => $"v{v.ToString()}" == docName);
-            });
-            if (includeXmlDocumentation)
-            {
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                    Name = "Authorization",
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey
+                });
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                          new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference
+                                {
+                                    Type = ReferenceType.SecurityScheme,
+                                    Id = "Bearer"
+                                }
+                            },
+                            Array.Empty<string>()
+
+                    }
+                });
+                options.DocInclusionPredicate((docName, apiDesc) =>
+                {
+                    var actionApiVersionModel = apiDesc.ActionDescriptor.GetApiVersionModel();
+                    // Would mean this action is unversioned and should be included everywhere
+                    return actionApiVersionModel.DeclaredApiVersions.Any() ? actionApiVersionModel.DeclaredApiVersions.Any(v => $"v{v.ToString()}" == docName) : actionApiVersionModel.ImplementedApiVersions.Any(v => $"v{v.ToString()}" == docName);
+                });
                 var xmlDocFile = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
                 if (File.Exists(xmlDocFile))
                 {
                     options.IncludeXmlComments(xmlDocFile);
                 }
-            }
-            options.DescribeAllParametersInCamelCase();
-            options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
-        });
-    }
+                options.DescribeAllParametersInCamelCase();
+                options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+            });
+        }
 
     ...
 }
@@ -121,24 +107,40 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     
     // Enable middleware to serve generated Swagger as a JSON endpoint.
     app.UseSwagger();
-
-    // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint
-    // https://docs.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-3.1&tabs=visual-studio
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1.1/swagger.json", $"{API_NAME} v1.1");
-        c.SwaggerEndpoint("/swagger/v1.0/swagger.json", $"{API_NAME} v1.0");
-        c.RoutePrefix = string.Empty;
-    });
     
     ...
 }
 ```
-Then you can run your app and navigate to **http://localhost:52330/swagger/v1.1/swagger.json** to download the generated JSON document that describes your API. The web UI is at "http://localhost:52330/swagger" by default. You can set the **RoutePrefix** property of the **SwaggerUIOptions** object that gets passed to the UseSwaggerUI method to change the URL.
+And ServiceCollection extensions looks like this:
+```csharp
+    ...
+    
+    public static void UseSwagger(this IApplicationBuilder app)
+    {
+        var configuration = app.ApplicationServices.GetService<IConfiguration>();
+        var swaggerVersions = ConfigurationHelper.GetSwaggerVersions(configuration);
+
+        // Enable middleware to serve generated Swagger as a JSON endpoint.
+        SwaggerBuilderExtensions.UseSwagger(app);
+
+        // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint
+        // https://docs.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-3.1&tabs=visual-studio
+        app.UseSwaggerUI(config =>
+        {
+            foreach (var swaggerVersion in swaggerVersions.OrderByDescending(v => v.Version))
+            {
+                config.SwaggerEndpoint(swaggerVersion.UIEndpoint, swaggerVersion.Version);
+            }
+        });
+    }
+    ...
+```
+Then you can run your app and navigate to **http://localhost:5000/swagger/v1.1/swagger.json** to download the generated JSON document that describes your API. The web UI is at "http://localhost:5000/swagger" by default. You can set the **RoutePrefix** property of the **SwaggerUIOptions** object that gets passed to the UseSwaggerUI method to change the URL.
 
 ## Setup Serilog
 For logging we are using as usual [Serilog](https://serilog.net/). For this we have to install [Serilog.AspNetCore NuGet](https://www.nuget.org/packages/Serilog.AspNetCore/) package and modify **Program.cs** file like this:
 ```csharp
+
 public class Program
 {
     public static void Main(string[] args)
@@ -148,33 +150,34 @@ public class Program
 
     public static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder(args)
-        // Configure Serilog
-        .UseSerilog((hostingContext, loggerConfiguration) => loggerConfiguration
-            .ReadFrom.Configuration(hostingContext.Configuration)
-            .Enrich.FromLogContext())
-        // Set the content root to be the current directory
-        .UseContentRoot(Directory.GetCurrentDirectory())
-        // Disable the dependency injection scope validation feature
-        .UseDefaultServiceProvider(options => options.ValidateScopes = false)
-        .ConfigureWebHostDefaults(webBuilder =>
-        {
-            webBuilder.UseStartup<Startup>();
-        })
-        .ConfigureAppConfiguration((builderContext, config) =>
-        {
-            var env = builderContext.HostingEnvironment;
-            config.SetBasePath(env.ContentRootPath);
-            config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-            config.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
-            config.AddEnvironmentVariables();
-        })
-        .ConfigureLogging((builderContext, logging) =>
-        {
-            // Clear default logging providers
-            logging.ClearProviders();
-            logging.AddConsole();
-            logging.AddSerilog();
-        });
+            // Configure Serilog
+            .UseSerilog((hostingContext, loggerConfiguration) => loggerConfiguration
+                .ReadFrom.Configuration(hostingContext.Configuration)
+                .Enrich.FromLogContext())
+            // Set the content root to be the current directory
+            .UseContentRoot(Directory.GetCurrentDirectory())
+            // Disable the dependency injection scope validation feature
+            .UseDefaultServiceProvider(options => options.ValidateScopes = false)
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder.UseStartup<Startup>()
+                    .UseKestrel();
+            })
+            .ConfigureAppConfiguration((builderContext, config) =>
+            {
+                var env = builderContext.HostingEnvironment;
+                config.SetBasePath(env.ContentRootPath);
+                config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                config.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
+                config.AddEnvironmentVariables();
+            })
+            .ConfigureLogging((builderContext, logging) =>
+            {
+                // Clear default logging providers
+                logging.ClearProviders();
+                logging.AddConsole();
+                logging.AddSerilog();
+            });
 }
 ```
 **Serilog** is configured with "**Serilog**" configuration section in **appsettings.json** file:
@@ -189,6 +192,34 @@ public class Program
   },
   "AuthSettings": {
     "SecretKey": "THIS IS USED TO SIGN AND VERIFY JWT TOKENS, REPLACE IT WITH YOUR OWN SECRET, IT CAN BE ANY STRING"
+  },
+  "Swagger": {
+    "SwaggerOptions": {
+      "IncludeXmlComments": true,
+      "ContactName": "Matjaz Bravc",
+      "ContactEmail": "matjaz.bravc@gmail.com",
+      "ContactUrl": "https://matjazbravc.github.io/",
+      "LicenseName": "Licenced under MIT license",
+      "LicenseUrl": "http://opensource.org/licenses/mit-license.php"
+    },
+    "SwaggerVersions": [
+      {
+        "Title": "Company Web API",
+        "Description": "*** DEPRECATED WEB API VERSION ***",
+        "Version": "v1.0",
+        "RoutePrefix": "",
+        "UIEndpoint": "/swagger/v1.0/swagger.json",
+        "Default":  false 
+      },
+      {
+        "Title": "Company Web API",
+        "Description": "OpenAPI Demo",
+        "Version": "v1.1",
+        "RoutePrefix": "",
+        "UIEndpoint": "/swagger/v1.1/swagger.json",
+        "Default": true
+      }
+    ]
   },
   "Serilog": {
     "Using": [ "Serilog.Sinks.File" ],
@@ -232,8 +263,9 @@ public class Program
     ],
     "Enrich": [ "FromLogContext" ]
   },
-  "AllowedHosts": "*"   
+  "AllowedHosts": "*"
 }
+
 ```
 ## Configure SQLite database provider
 For using **SQLite** database provider we have to install [Microsoft.EntityFrameworkCore.Sqlite NuGet](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.Sqlite) package and add database context to the services collection in the **ConfigureServices** method in Startup class:
@@ -274,21 +306,42 @@ First-of-all, for using API Versioning we have to install [Microsoft.AspNetCore.
 public void ConfigureServices(IServiceCollection services)
 {
     ...
-    
-    // Add API Versioning
-    // The default version is 1.1
-    // And we're going to read the version number from the media type
-    // Incoming requests should have a accept header like this: Accept: application/json;v=1.1
-    services.AddApiVersioning(o =>
-    {
-        o.DefaultApiVersion = new ApiVersion(1, 1); // Specify the default api version
-        o.AssumeDefaultVersionWhenUnspecified = true; // Assume that the caller wants the default version if they don't specify
-        o.ApiVersionReader = new MediaTypeApiVersionReader(); // Read the version number from the accept header
-        o.ReportApiVersions = true; // Return Api version in response header
-    });
-    
+    services.AddVersioning();
     ...
 }
+```
+And ServiceCollection extensions looks like this:
+```csharp
+
+    public static class ServiceExtensions
+    {
+        ...
+        
+        // Add API Versioning
+        // The default version is 1.1
+        // And we're going to read the version number from the media type
+        // Incoming requests should have a accept header like this: Accept: application/json;v=1.1
+        public static void AddVersioning(this IServiceCollection services)
+        {
+            var configuration = services
+                .BuildServiceProvider()
+                .GetService<IConfiguration>();
+
+            var defaultApiVersion = ConfigurationHelper.GetDefaultApiVersion(configuration);
+            services.AddApiVersioning(config =>
+            {
+                // Default API Version
+                config.DefaultApiVersion = defaultApiVersion;
+                // use default version when version is not specified
+                config.AssumeDefaultVersionWhenUnspecified = true;
+                // Advertise the API versions supported for the particular endpoint
+                config.ReportApiVersions = true;
+            });
+        }
+        
+        ...
+    }
+
 ```
 We will use simple **URL path versioning scheme**. Using a version number directly in the URL path is one of the simplest way of versioning an API. URL path versioning approach is more visible since it explicitly states the version number in the URL itself. To implement URL path versioning, modify the **[Route]** attribute of the controllers to accept API versioning info in the path param like this:
 ```csharp
@@ -340,7 +393,6 @@ namespace CompanyWebApi.Controllers
 The Users controller defines and handles all routes for the api that relate to users, this includes authentication and standard CRUD operations. Within each route the controller calls the user service to perform the action required, this enables the controller to stay completely separated from the business logic and data access code.
 The controller actions are secured with JWT using the **[Authorize]** attribute, with the exception of the **Authenticate method** which allows public access by overriding the **[Authorize]** attribute on the controller with **[AllowAnonymous]** attribute on the action method. I chose this approach so any new action methods added to the controller will be secure by default unless explicitly made public.
 ```csharp
-using CompanyWebApi.Contracts.Dto;
 using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Controllers.Base;
 using CompanyWebApi.Core.Errors;
@@ -359,6 +411,7 @@ namespace CompanyWebApi.Controllers
     [Authorize]
     [ApiController]
     [ApiVersion("1.1")]
+    [Produces("application/json")]
     [EnableCors("EnableCORS")]
     [Route("api/v{version:apiVersion}/[controller]")]
     public class UsersController : BaseController<UsersController>
@@ -423,13 +476,13 @@ namespace CompanyWebApi.Controllers
         /// <param name="userName"></param>
         /// <returns>Return User</returns>
         [MapToApiVersion("1.1")]
-        [HttpDelete("{userName}", Name = "DeleteUserByName")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
+        [HttpDelete("{userName}", Name = "DeleteUserByName")]
         public async Task<ActionResult> DeleteAsync(string userName)
         {
             Logger.LogDebug("DeleteAsync");
-            var user = await _userRepository.GetSingleAsync(user => user.Username == userName).ConfigureAwait(false);
+            var user = await _userRepository.GetSingleAsync(usr => usr.Username == userName).ConfigureAwait(false);
             if (user == null)
             {
                 return NotFound(new NotFoundError("The User was not found"));
@@ -445,10 +498,10 @@ namespace CompanyWebApi.Controllers
         /// if the HTTP Authorization header contains a valid JWT token.
         /// If there is no auth token or the token is invalid then a 401 Unauthorized response is returned.
         /// </remarks>
-        /// GET /api/users/v1.1/getall
+        /// GET /api/users/v1.1/getAll
         /// <returns>List of Users</returns>
         [MapToApiVersion("1.1")]
-        [HttpGet("getall")]
+        [HttpGet("getAll")]
         public async Task<ActionResult<IList<User>>> GetAllAsync()
         {
             Logger.LogDebug("GetAllAsync");
@@ -481,7 +534,7 @@ namespace CompanyWebApi.Controllers
         public async Task<ActionResult<User>> GetAsync(string userName)
         {
             Logger.LogDebug("GetAsync");
-            var user = await _userRepository.GetSingleAsync(user => user.Username.Equals(userName)).ConfigureAwait(false);
+            var user = await _userRepository.GetSingleAsync(usr => usr.Username.Equals(userName)).ConfigureAwait(false);
             if (user == null)
             {
                 return NotFound(new NotFoundError("The User was not found"));
