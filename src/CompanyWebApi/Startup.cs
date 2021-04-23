@@ -24,12 +24,8 @@ using System;
 
 namespace CompanyWebApi
 {
-    // Create web APIs with ASP.NET Core
-    // https://docs.microsoft.com/en-us/aspnet/core/web-api/?view=aspnetcore-3.1
     public class Startup
     {
-        private const string API_NAME = "Company Web API";
-
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -53,22 +49,20 @@ namespace CompanyWebApi
             ConfigureAuthentication(services);
 
             services.AddCorsPolicy("EnableCORS");
+            services.AddVersioning();
+            services.AddSwagger();
 
             services.AddControllers()
                 .ConfigureApiBehaviorOptions(options =>
                 {
                     options.SuppressConsumesConstraintForFormFileParameters = true;
                     options.SuppressInferBindingSourcesForParameters = true;
-                    options.SuppressModelStateInvalidFilter =
-                        true; // To disable the automatic 400 behavior, set the SuppressModelStateInvalidFilter property to true
+                    options.SuppressModelStateInvalidFilter = true; // To disable the automatic 400 behavior, set the SuppressModelStateInvalidFilter property to true
                     options.SuppressMapClientErrors = true;
                     options.ClientErrorMapping[404].Link = "https://httpstatuses.com/404";
                 })
                 .AddNewtonsoftJson(options =>
-                    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
-                );
-            services.AddApiVersioningExtension();
-            services.AddSwaggerExtension(API_NAME);
+                    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
             // Add Database Context
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -87,7 +81,7 @@ namespace CompanyWebApi
                 SeedData.Initialize(context);
             }
 
-            app.UseExceptionHandler("/Error");
+            app.UseSwagger();
 
             // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
@@ -96,25 +90,21 @@ namespace CompanyWebApi
             // A slightly less secure option would be to redirect http to 400, 505, etc.
             app.UseHttpsRedirection();
 
-            app.UseCors("EnableCORS");
-
             app.UseSerilogRequestLogging();
-            app.UseRouting();
 
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            app.UseErrorHandlingMiddleware();
+            app.UseGlobalErrorHandling();
 
             // Request/Response logging middleware
             app.UseApiLogging();
 
+            app.UseRouting();
+            app.UseCors("EnableCORS");
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
-
-            app.UseSwaggerExtension();
         }
 
         protected virtual void ConfigureAuthentication(IServiceCollection services)
@@ -143,7 +133,7 @@ namespace CompanyWebApi
                 ValidateAudience = true, // Audience will be validated during token validation
                 ValidAudience = jwtIssuerOptions[nameof(JwtIssuerOptions.Audience)],
 
-                ValidateIssuerSigningKey = true, 
+                ValidateIssuerSigningKey = true,
                 IssuerSigningKey = signingKey,
 
                 RequireExpirationTime = false,
@@ -179,7 +169,7 @@ namespace CompanyWebApi
         protected virtual void RegisterServices(IServiceCollection services)
         {
             // Register middlewares
-            services.AddTransient<ApiLogging>();
+            services.AddTransient<ApiLoggingMiddleware>();
             services.AddTransient<ErrorHandlerMiddleware>();
 
             // Services

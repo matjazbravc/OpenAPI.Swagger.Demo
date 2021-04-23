@@ -1,6 +1,7 @@
 using System;
 using System.Dynamic;
 using System.Net.Http;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace CompanyWebApi.Tests.Services
@@ -15,7 +16,11 @@ namespace CompanyWebApi.Tests.Services
 
         public ControllerTestsBase(WebApiTestFactory factory)
         {
-            Client = factory.CreateClient();
+            var options = new WebApplicationFactoryClientOptions
+            {
+                AllowAutoRedirect = true
+            };
+            Client = factory.CreateClient(options);
             Token = new ExpandoObject();
             Token.sub = Guid.NewGuid();
             Token.role = new[] { "admin_role", "admin" };

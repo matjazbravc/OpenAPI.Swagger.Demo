@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,5 +11,4 @@
     <ProjectReference Include="..\CompanyWebApi.Contracts\CompanyWebApi.Contracts.csproj" />
     <ProjectReference Include="..\CompanyWebApi.Core\CompanyWebApi.Core.csproj" />
   </ItemGroup>
-
 </Project>

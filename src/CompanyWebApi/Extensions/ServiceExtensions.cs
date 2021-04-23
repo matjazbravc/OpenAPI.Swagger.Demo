@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc.Abstractions;
+﻿using CompanyWebApi.Services.Helpers;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.OpenApi.Models;
@@ -16,12 +18,17 @@ namespace CompanyWebApi.Extensions
         // The default version is 1.1
         // And we're going to read the version number from the media type
         // Incoming requests should have a accept header like this: Accept: application/json;v=1.1
-        public static void AddApiVersioningExtension(this IServiceCollection services)
+        public static void AddVersioning(this IServiceCollection services)
         {
+            var configuration = services
+                .BuildServiceProvider()
+                .GetService<IConfiguration>();
+
+            var defaultApiVersion = ConfigurationHelper.GetDefaultApiVersion(configuration);
             services.AddApiVersioning(config =>
             {
                 // Default API Version
-                config.DefaultApiVersion = new ApiVersion(1, 1);
+                config.DefaultApiVersion = defaultApiVersion;
                 // use default version when version is not specified
                 config.AssumeDefaultVersionWhenUnspecified = true;
                 // Advertise the API versions supported for the particular endpoint
@@ -42,44 +49,37 @@ namespace CompanyWebApi.Extensions
             });
         }
 
-        public static void AddSwaggerExtension(this IServiceCollection serviceCollection, string apiName)
+        public static void AddSwagger(this IServiceCollection services)
         {
-            serviceCollection.AddSwaggerGen(options =>
+            var configuration = services
+                .BuildServiceProvider()
+                .GetService<IConfiguration>();
+
+            var swaggerOptions = ConfigurationHelper.GetSwaggerOptions(configuration);
+            var swaggerVersions = ConfigurationHelper.GetSwaggerVersions(configuration);
+
+            services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1.0", new OpenApiInfo
+                foreach (var swaggerVersion in swaggerVersions.OrderByDescending(v => v.Version))
                 {
-                    Title = $"{apiName} v1.0",
-                    Version = "v1.0",
-                    Description = "*** DEPRECATED WEB API VERSION ***",
-                    Contact = new OpenApiContact
+                    options.SwaggerDoc(swaggerVersion.Version, new OpenApiInfo
                     {
-                        Name = "Matjaz Bravc",
-                        Email = "matjaz.bravc@gmail.com",
-                        Url = new Uri("https://matjazbravc.github.io/")
-                    },
-                    License = new OpenApiLicense
-                    {
-                        Name = "Licenced under MIT license",
-                        Url = new Uri("http://opensource.org/licenses/mit-license.php")
-                    }
-                });
-                options.SwaggerDoc("v1.1", new OpenApiInfo
-                {
-                    Title = $"{apiName} v1.1",
-                    Version = "v1.1",
-                    Description = "DEFAULT WEB API",
-                    Contact = new OpenApiContact
-                    {
-                        Name = "Matjaz Bravc",
-                        Email = "matjaz.bravc@gmail.com",
-                        Url = new Uri("https://matjazbravc.github.io/")
-                    },
-                    License = new OpenApiLicense
-                    {
-                        Name = "Licenced under MIT license",
-                        Url = new Uri("http://opensource.org/licenses/mit-license.php")
-                    }
-                });
+                        Title = swaggerVersion.Title,
+                        Version = swaggerVersion.Version,
+                        Description = swaggerVersion.Description,
+                        Contact = new OpenApiContact
+                        {
+                            Name = swaggerOptions.ContactName,
+                            Email = swaggerOptions.ContactEmail,
+                            Url = new Uri(swaggerOptions.ContactUrl)
+                        },
+                        License = new OpenApiLicense
+                        {
+                            Name = swaggerOptions.LicenseName,
+                            Url = new Uri(swaggerOptions.LicenseUrl)
+                        }
+                    });
+                }
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",

@@ -17,7 +17,7 @@ namespace CompanyWebApi.Middleware
 
         public ErrorHandlerMiddleware(ILoggerFactory loggerFactory)
         {
-            _logger = loggerFactory.CreateLogger<ApiLogging>();
+            _logger = loggerFactory.CreateLogger<ApiLoggingMiddleware>();
         }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)

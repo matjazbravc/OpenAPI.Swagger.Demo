@@ -1,5 +1,9 @@
 ﻿using CompanyWebApi.Middleware;
+using CompanyWebApi.Services.Helpers;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
 
 namespace CompanyWebApi.Extensions
 {
@@ -7,24 +11,30 @@ namespace CompanyWebApi.Extensions
     {
         public static IApplicationBuilder UseApiLogging(this IApplicationBuilder builder)
         {
-            return builder.UseMiddleware<ApiLogging>();
+            return builder.UseMiddleware<ApiLoggingMiddleware>();
         }
 
-        public static void UseErrorHandlingMiddleware(this IApplicationBuilder app)
+        public static void UseGlobalErrorHandling(this IApplicationBuilder app)
         {
             app.UseMiddleware<ErrorHandlerMiddleware>();
         }
 
-        public static void UseSwaggerExtension(this IApplicationBuilder app)
+        public static void UseSwagger(this IApplicationBuilder app)
         {
+            var configuration = app.ApplicationServices.GetService<IConfiguration>();
+            var swaggerVersions = ConfigurationHelper.GetSwaggerVersions(configuration);
+
             // Enable middleware to serve generated Swagger as a JSON endpoint.
-            app.UseSwagger();
+            SwaggerBuilderExtensions.UseSwagger(app);
+
             // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint
             // https://docs.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-3.1&tabs=visual-studio
             app.UseSwaggerUI(config =>
             {
-                config.SwaggerEndpoint("/swagger/v1.1/swagger.json", "v1.1");
-                config.SwaggerEndpoint("/swagger/v1.0/swagger.json", "v1.0");
+                foreach (var swaggerVersion in swaggerVersions.OrderByDescending(v => v.Version))
+                {
+                    config.SwaggerEndpoint(swaggerVersion.UIEndpoint, swaggerVersion.Version);
+                }
             });
         }
     }

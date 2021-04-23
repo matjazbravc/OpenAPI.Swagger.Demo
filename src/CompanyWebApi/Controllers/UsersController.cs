@@ -81,9 +81,9 @@ namespace CompanyWebApi.Controllers
         /// <param name="userName"></param>
         /// <returns>Return User</returns>
         [MapToApiVersion("1.1")]
-        [HttpDelete("{userName}", Name = "DeleteUserByName")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
+        [HttpDelete("{userName}", Name = "DeleteUserByName")]
         public async Task<ActionResult> DeleteAsync(string userName)
         {
             Logger.LogDebug("DeleteAsync");
