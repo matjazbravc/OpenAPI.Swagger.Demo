@@ -20,13 +20,13 @@ namespace CompanyWebApi.Controllers.V2
     [Produces("application/json")]
     [EnableCors("EnableCORS")]
     [Route("api/v{version:apiVersion}/[controller]")]
-    public class Companies2Controller : BaseController<Companies2Controller>
+    public class CompaniesController : BaseController<CompaniesController>
     {
         private readonly ICompanyRepository _companyRepository;
         private readonly IConverter<Company, CompanyDto> _companyToDtoConverter;
         private readonly IConverter<IList<Company>, IList<CompanyDto>> _companyToDtoListConverter;
 
-        public Companies2Controller(ICompanyRepository companyRepository,
+        public CompaniesController(ICompanyRepository companyRepository,
             IConverter<Company, CompanyDto> companyToDtoConverter,
             IConverter<IList<Company>, IList<CompanyDto>> companyToDtoListConverter)
         {

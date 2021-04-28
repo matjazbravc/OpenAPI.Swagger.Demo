@@ -102,7 +102,7 @@ namespace CompanyWebApi.Services.Swagger
 
             if (description.IsDeprecated)
             {
-                info.Description += " This API version has been deprecated.";
+                info.Description += " ** THIS API VERSION HAS BEEN DEPRECATED!";
             }
 
             return info;

@@ -12,7 +12,7 @@
     "Development": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api-docs",
+      "launchUrl": "api-docs/index.html?urls.primaryName=v2",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

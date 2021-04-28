@@ -16,7 +16,7 @@ namespace CompanyWebApi.Controllers.V1
 {
     [Authorize]
     [ApiController]
-    [ApiVersion("1.0")]
+    [ApiVersion("1.0", Deprecated = true)]
     [Produces("application/json")]
     [EnableCors("EnableCORS")]
     [Route("api/v{version:apiVersion}/[controller]")]
