@@ -1,9 +1,8 @@
-﻿using CompanyWebApi.Middleware;
-using CompanyWebApi.Services.Helpers;
+﻿using CompanyWebApi.Configurations;
+using CompanyWebApi.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
+using Microsoft.Extensions.Options;
 
 namespace CompanyWebApi.Extensions
 {
@@ -19,23 +18,14 @@ namespace CompanyWebApi.Extensions
             app.UseMiddleware<ErrorHandlerMiddleware>();
         }
 
-        public static void UseSwagger(this IApplicationBuilder app)
+        public static void UseSwaggerMiddleware(this IApplicationBuilder app, IConfiguration config)
         {
-            var configuration = app.ApplicationServices.GetService<IConfiguration>();
-            var swaggerVersions = ConfigurationHelper.GetSwaggerVersions(configuration);
-
-            // Enable middleware to serve generated Swagger as a JSON endpoint.
-            SwaggerBuilderExtensions.UseSwagger(app);
-
-            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint
-            // https://docs.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-3.1&tabs=visual-studio
-            app.UseSwaggerUI(config =>
+            var swaggerConfig = config.GetSection("SwaggerConfig").Get<SwaggerConfig>();
+            app.UseSwagger(options =>
             {
-                foreach (var swaggerVersion in swaggerVersions.OrderByDescending(v => v.Version))
-                {
-                    config.SwaggerEndpoint(swaggerVersion.UIEndpoint, swaggerVersion.Version);
-                }
+                options.RouteTemplate = swaggerConfig.RouteTemplate;
             });
+            app.UseSwaggerUI();
         }
     }
 }

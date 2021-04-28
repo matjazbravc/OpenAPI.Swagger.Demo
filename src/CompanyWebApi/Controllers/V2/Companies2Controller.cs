@@ -12,22 +12,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CompanyWebApi.Controllers
+namespace CompanyWebApi.Controllers.V2
 {
     [Authorize]
     [ApiController]
-    [ApiVersion("1.0", Deprecated = true)]
-    [ApiVersion("1.1")]
+    [ApiVersion("2.0")]
     [Produces("application/json")]
     [EnableCors("EnableCORS")]
     [Route("api/v{version:apiVersion}/[controller]")]
-    public class CompaniesController : BaseController<CompaniesController>
+    public class Companies2Controller : BaseController<Companies2Controller>
     {
         private readonly ICompanyRepository _companyRepository;
         private readonly IConverter<Company, CompanyDto> _companyToDtoConverter;
         private readonly IConverter<IList<Company>, IList<CompanyDto>> _companyToDtoListConverter;
 
-        public CompaniesController(ICompanyRepository companyRepository,
+        public Companies2Controller(ICompanyRepository companyRepository,
             IConverter<Company, CompanyDto> companyToDtoConverter,
             IConverter<IList<Company>, IList<CompanyDto>> companyToDtoListConverter)
         {
@@ -43,12 +42,11 @@ namespace CompanyWebApi.Controllers
         /// POST /api/companies/create/{company}
         /// <param name="company">Company model</param>
         /// <param name="apiVersion">API version</param>
-        [MapToApiVersion("1.1")]
         [ProducesResponseType(201, Type = typeof(Company))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [HttpPost("create")]
-        public async Task<IActionResult> CreateAsync([FromBody]Company company, ApiVersion apiVersion)
+        public async Task<IActionResult> CreateAsync([FromBody] Company company, ApiVersion apiVersion)
         {
             Logger.LogDebug(nameof(CreateAsync));
             if (company == null)
@@ -66,7 +64,6 @@ namespace CompanyWebApi.Controllers
         /// DELETE /api/companies/{id}
         /// <param name="id"></param>
         /// <returns></returns>
-        [MapToApiVersion("1.1")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
         [HttpDelete("{id}", Name = "DeleteCompanyById")]
@@ -88,7 +85,6 @@ namespace CompanyWebApi.Controllers
         /// <remarks>This API return list of all Companies</remarks>
         /// GET api/companies/getall
         /// <returns>List of Companies</returns>
-        [MapToApiVersion("1.1")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<CompanyDto>))]
         [ProducesResponseType(404)]
         [HttpGet("getAll")]
@@ -110,7 +106,6 @@ namespace CompanyWebApi.Controllers
         /// GET /api/companies/{id}
         /// <param name="id">Company Id</param>
         /// <returns>Return Company</returns>
-        [MapToApiVersion("1.1")]
         [ProducesResponseType(200, Type = typeof(CompanyDto))]
         [ProducesResponseType(404)]
         [HttpGet("{id}", Name = "GetCompanyById")]
@@ -134,11 +129,10 @@ namespace CompanyWebApi.Controllers
         /// <param name="company">Company model</param>
         /// <param name="apiVersion">API version</param>
         /// <returns>Returns updated Company</returns>
-        [MapToApiVersion("1.1")]
         [ProducesResponseType(201, Type = typeof(CompanyDto))]
         [ProducesResponseType(400)]
         [HttpPost("update")]
-        public async Task<IActionResult> UpdateAsync([FromBody]Company company, ApiVersion apiVersion)
+        public async Task<IActionResult> UpdateAsync([FromBody] Company company, ApiVersion apiVersion)
         {
             Logger.LogDebug(nameof(UpdateAsync));
             if (company == null)

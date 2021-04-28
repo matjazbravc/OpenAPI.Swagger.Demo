@@ -11,11 +11,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CompanyWebApi.Controllers
+namespace CompanyWebApi.Controllers.V2
 {
     [Authorize]
     [ApiController]
-    [ApiVersion("1.1")]
+    [ApiVersion("2.0")]
     [Produces("application/json")]
     [EnableCors("EnableCORS")]
     [Route("api/v{version:apiVersion}/[controller]")]
@@ -57,11 +57,10 @@ namespace CompanyWebApi.Controllers
         /// POST /api/users/v1.1/create/{user}
         /// <param name="user">User model</param>
         /// <param name="apiVersion">API Version</param>
-        [MapToApiVersion("1.1")]
-        [HttpPost("create", Name = "CreateUser")]
         [ProducesResponseType(201, Type = typeof(User))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
+        [HttpPost("create", Name = "CreateUser")]
         public async Task<IActionResult> CreateAsync([FromBody] User user, ApiVersion apiVersion)
         {
             Logger.LogDebug("CreateAsync");
@@ -80,7 +79,6 @@ namespace CompanyWebApi.Controllers
         /// GET /api/users/v1.1/{userName}
         /// <param name="userName"></param>
         /// <returns>Return User</returns>
-        [MapToApiVersion("1.1")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
         [HttpDelete("{userName}", Name = "DeleteUserByName")]
@@ -105,7 +103,8 @@ namespace CompanyWebApi.Controllers
         /// </remarks>
         /// GET /api/users/v1.1/getAll
         /// <returns>List of Users</returns>
-        [MapToApiVersion("1.1")]
+        [ProducesResponseType(201, Type = typeof(IList<User>))]
+        [ProducesResponseType(400)]
         [HttpGet("getAll")]
         public async Task<ActionResult<IList<User>>> GetAllAsync()
         {
@@ -154,10 +153,9 @@ namespace CompanyWebApi.Controllers
         /// <param name="user"></param>
         /// <param name="apiVersion">API Version</param>
         /// <returns>Returns updated User</returns>
-        [MapToApiVersion("1.1")]
-        [HttpPost("update", Name = "UpdateUser")]
         [ProducesResponseType(201, Type = typeof(User))]
         [ProducesResponseType(400)]
+        [HttpPost("update", Name = "UpdateUser")]
         public async Task<IActionResult> UpdateAsync([FromBody] User user, ApiVersion apiVersion)
         {
             Logger.LogDebug("UpdateAsync");

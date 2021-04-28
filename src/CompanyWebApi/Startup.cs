@@ -8,14 +8,18 @@ using CompanyWebApi.Middleware;
 using CompanyWebApi.Persistence.DbContexts;
 using CompanyWebApi.Services.Authorization;
 using CompanyWebApi.Services.Repositories;
+using CompanyWebApi.Services.Swagger;
 using CompanyWebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,24 +48,32 @@ namespace CompanyWebApi
             // Configure DI for application services
             RegisterServices(services);
 
+            // Register RedoxApiConfig
+            services.Configure<SwaggerConfig>(Configuration.GetSection("SwaggerConfig"));
+            services.AddTransient(provider => provider.GetService<IOptions<SwaggerConfig>>()?.Value);
+
             // Configure JWT authentication
             ConfigureAuthentication(services);
 
             services.AddCorsPolicy("EnableCORS");
-            services.AddVersioning();
-            services.AddSwagger();
+            services.AddAndConfigureApiVersioning();
 
-            services.AddControllers()
-                .ConfigureApiBehaviorOptions(options =>
-                {
-                    options.SuppressConsumesConstraintForFormFileParameters = true;
-                    options.SuppressInferBindingSourcesForParameters = true;
-                    options.SuppressModelStateInvalidFilter = true; // To disable the automatic 400 behavior, set the SuppressModelStateInvalidFilter property to true
-                    options.SuppressMapClientErrors = true;
-                    options.ClientErrorMapping[404].Link = "https://httpstatuses.com/404";
-                })
-                .AddNewtonsoftJson(options =>
-                    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+            services.AddControllers(options =>
+            {
+                options.Conventions.Add(new GroupingByNamespaceConvention());
+            })
+            .ConfigureApiBehaviorOptions(options =>
+            {
+                options.SuppressConsumesConstraintForFormFileParameters = true;
+                options.SuppressInferBindingSourcesForParameters = true;
+                options.SuppressModelStateInvalidFilter = true; // To disable the automatic 400 behavior, set the SuppressModelStateInvalidFilter property to true
+                options.SuppressMapClientErrors = true;
+                options.ClientErrorMapping[404].Link = "https://httpstatuses.com/404";
+            })
+            .AddNewtonsoftJson(options =>
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+
+            services.AddSwaggerMiddleware();
 
             // Add Database Context
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -69,7 +81,7 @@ namespace CompanyWebApi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app)
+        public void Configure(IApplicationBuilder app, IConfiguration config)
         {
             // Configure Database context
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()?.CreateScope())
@@ -80,7 +92,7 @@ namespace CompanyWebApi
                 SeedData.Initialize(context);
             }
 
-            app.UseSwagger();
+            app.UseSwaggerMiddleware(config);
 
             // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
@@ -170,6 +182,10 @@ namespace CompanyWebApi
             // Register middlewares
             services.AddTransient<ApiLoggingMiddleware>();
             services.AddTransient<ErrorHandlerMiddleware>();
+
+            // Configure Swagger
+            services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerGenOptions>();
+            services.AddTransient<IConfigureOptions<SwaggerUIOptions>, ConfigureSwaggerUiOptions>();
 
             // Services
             services.AddTransient<IJwtTokenHandler, JwtTokenHandler>();
