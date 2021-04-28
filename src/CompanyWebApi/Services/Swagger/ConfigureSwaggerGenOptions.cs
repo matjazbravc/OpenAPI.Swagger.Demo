@@ -39,6 +39,7 @@ namespace CompanyWebApi.Services.Swagger
         {
             // Add a custom operation filter which sets default values
             options.OperationFilter<SwaggerDefaultValues>();
+            options.OperationFilter<SwaggerLanguageHeader>();
 
             // Add a swagger document for each discovered API version
             // Note: you might choose to skip or document deprecated API versions differently

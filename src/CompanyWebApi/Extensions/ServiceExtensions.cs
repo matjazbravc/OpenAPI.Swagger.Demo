@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CompanyWebApi.Extensions
@@ -7,10 +8,13 @@ namespace CompanyWebApi.Extensions
     {
         // Add API Versioning
         // The default version is 1.0
-        // And we're going to read the version number from the media type
-        // Incoming requests should have a accept header like this: Accept: application/json;v=1.1
         public static void AddAndConfigureApiVersioning(this IServiceCollection services)
         {
+            services.Configure<RouteOptions>(options =>
+            {
+                options.LowercaseUrls = true;
+            });
+
             services.AddApiVersioning(config =>
             {
                 // Default API Version
