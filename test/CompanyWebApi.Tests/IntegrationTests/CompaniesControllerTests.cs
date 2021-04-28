@@ -1,17 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
 using CompanyWebApi.Contracts.Dto;
 using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Tests.Services;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
+using System;
 using Xunit;
 
 namespace CompanyWebApi.Tests.IntegrationTests
 {
 	public class CompaniesControllerTests : ControllerTestsBase
 	{
-		private const string BASE_URL = "/api/v1.1/companies/";
+		private const string BASE_URL = "/api/v2/companies/";
 		private readonly HttpClientHelper _httpClientHelper;
 
 		public CompaniesControllerTests(WebApiTestFactory factory)

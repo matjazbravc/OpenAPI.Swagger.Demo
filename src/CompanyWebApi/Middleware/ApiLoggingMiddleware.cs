@@ -29,7 +29,7 @@ namespace CompanyWebApi.Middleware
         public async Task Invoke(HttpContext context)
         {
             // Get host IP address
-            var remoteIp = context.Features.Get<IHttpConnectionFeature>()?.RemoteIpAddress.ToString();
+            var remoteIp = context.Features.Get<IHttpConnectionFeature>()?.RemoteIpAddress?.ToString();
             var ipAddress = "127.0.0.1";
             if (!string.IsNullOrEmpty(remoteIp))
             {
@@ -38,7 +38,6 @@ namespace CompanyWebApi.Middleware
 
             // Start stopwatch
             var stopWatch = Stopwatch.StartNew();
-            var RequestTimeUtc = DateTime.UtcNow;
 
             // Ensure that request body can be read multiple-times
             context.Request.EnableBuffering();
@@ -50,7 +49,6 @@ namespace CompanyWebApi.Middleware
             await context.Request.Body.CopyToAsync(requestBodyStream).ConfigureAwait(false);
 
             // Read request body to string
-            //var requestBodyString = ReadStreamToString(requestBodyStream);
             var requestBodyString = await new StreamReader(requestBodyStream).ReadToEndAsync().ConfigureAwait(false);
 
             // Reset request body stream position at begin

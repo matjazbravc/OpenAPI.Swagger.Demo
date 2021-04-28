@@ -131,10 +131,9 @@ namespace CompanyWebApi.Controllers.V2
         /// GET /api/users/v1.1/{userName}
         /// <param name="userName"></param>
         /// <returns>Return User</returns>
-        [MapToApiVersion("1.1")]
-        [HttpGet("{userName}", Name = "GetUserByUserName")]
         [ProducesResponseType(200, Type = typeof(User))]
         [ProducesResponseType(404)]
+        [HttpGet("{userName}", Name = "GetUserByUserName")]
         public async Task<ActionResult<User>> GetAsync(string userName)
         {
             Logger.LogDebug("GetAsync");

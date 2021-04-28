@@ -10,7 +10,7 @@ namespace CompanyWebApi.Tests.IntegrationTests
 {
     public class UsersControllerTests : ControllerTestsBase
     {
-        private const string BASE_URL = "/api/v1.1/users/";
+        private const string BASE_URL = "/api/v2/users/";
         private readonly HttpClientHelper _httpClientHelper;
 
         public UsersControllerTests(WebApiTestFactory factory)

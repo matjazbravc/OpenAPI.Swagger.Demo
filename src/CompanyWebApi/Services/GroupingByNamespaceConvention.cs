@@ -8,8 +8,8 @@ namespace CompanyWebApi.Services
         public void Apply(ControllerModel controller)
         {
             var controllerNamespace = controller.ControllerType.Namespace;
-            var apiVersion = controllerNamespace.Split(".").Last().ToLower();
-            if (!apiVersion.StartsWith("v"))
+            var apiVersion = controllerNamespace?.Split(".").Last().ToLower();
+            if (apiVersion == null || !apiVersion.StartsWith("v"))
             {
                 apiVersion = "v1";
             }
