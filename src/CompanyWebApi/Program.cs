@@ -7,7 +7,7 @@ using System.IO;
 
 namespace CompanyWebApi
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
@@ -37,7 +37,7 @@ namespace CompanyWebApi
                     config.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
                     config.AddEnvironmentVariables();
                 })
-                .ConfigureLogging((builderContext, logging) =>
+                .ConfigureLogging(logging =>
                 {
                     // Clear default logging providers
                     logging.ClearProviders();
