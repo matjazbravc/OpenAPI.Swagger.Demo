@@ -183,10 +183,6 @@ namespace CompanyWebApi
             services.AddTransient<ApiLoggingMiddleware>();
             services.AddTransient<ErrorHandlerMiddleware>();
 
-            // Configure Swagger
-            services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerGenOptions>();
-            services.AddTransient<IConfigureOptions<SwaggerUIOptions>, ConfigureSwaggerUiOptions>();
-
             // Services
             services.AddTransient<IJwtTokenHandler, JwtTokenHandler>();
             services.AddTransient<IJwtFactory, JwtFactory>();

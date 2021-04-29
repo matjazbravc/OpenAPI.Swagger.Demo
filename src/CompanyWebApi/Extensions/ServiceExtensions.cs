@@ -1,13 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CompanyWebApi.Services.Swagger;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace CompanyWebApi.Extensions
 {
     public static class ServiceExtensions
     {
-        // Add API Versioning
-        // The default version is 1.0
+        /// <summary>
+        /// Adds API service versioning
+        /// </summary>
+        /// <param name="services"></param>
         public static void AddAndConfigureApiVersioning(this IServiceCollection services)
         {
             services.Configure<RouteOptions>(options =>
@@ -18,7 +24,7 @@ namespace CompanyWebApi.Extensions
             services.AddApiVersioning(config =>
             {
                 // Default API Version
-                config.DefaultApiVersion = new ApiVersion(1, 0);
+                config.DefaultApiVersion = new ApiVersion(2, 0);
                 // use default version when version is not specified
                 config.AssumeDefaultVersionWhenUnspecified = true;
                 // Advertise the API versions supported for the particular endpoint
@@ -37,7 +43,11 @@ namespace CompanyWebApi.Extensions
             });
         }
 
-        // More info: https://docs.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-3.1
+        /// <summary>
+        /// Adds cross-origin resource sharing services
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="policyName"></param>
         public static void AddCorsPolicy(this IServiceCollection services, string policyName)
         {
             services.AddCors(options =>
@@ -50,10 +60,19 @@ namespace CompanyWebApi.Extensions
             });
         }
 
-        public static IServiceCollection AddSwaggerMiddleware(this IServiceCollection services)
+        /// <summary>
+        /// Adds Swagger support
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public static void AddSwaggerMiddleware(this IServiceCollection services)
         {
+            // Configure Swagger Options
+            services.AddTransient<IConfigureOptions<SwaggerUIOptions>, ConfigureSwaggerUiOptions>();
+            services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerGenOptions>();
+
+            // Register the Swagger generator
             services.AddSwaggerGen();
-            return services;
         }
     }
 }

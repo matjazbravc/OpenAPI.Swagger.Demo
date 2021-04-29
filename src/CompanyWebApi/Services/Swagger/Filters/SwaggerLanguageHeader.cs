@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
-namespace CompanyWebApi.Services.Swagger
+namespace CompanyWebApi.Services.Swagger.Filters
 {
     public class SwaggerLanguageHeader : IOperationFilter
     {
@@ -21,7 +21,6 @@ namespace CompanyWebApi.Services.Swagger
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
             operation.Parameters ??= new List<OpenApiParameter>();
-
             operation.Parameters.Add(new OpenApiParameter
             {
                 Name = "Accept-Language",
@@ -32,8 +31,7 @@ namespace CompanyWebApi.Services.Swagger
                 {
                     Type = "string",
                     Enum = (_serviceProvider.GetService(typeof(IOptions<RequestLocalizationOptions>)) as IOptions<RequestLocalizationOptions>)?
-                        .Value?
-                        .SupportedCultures?.Select(c => new OpenApiString(c.TwoLetterISOLanguageName)).ToList<IOpenApiAny>(),
+                        .Value?.SupportedCultures?.Select(c => new OpenApiString(c.TwoLetterISOLanguageName)).ToList<IOpenApiAny>(),
                 }
             });
         }

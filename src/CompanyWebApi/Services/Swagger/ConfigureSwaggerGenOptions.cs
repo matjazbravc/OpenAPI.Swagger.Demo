@@ -8,11 +8,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System;
+using CompanyWebApi.Services.Swagger.Filters;
 
 namespace CompanyWebApi.Services.Swagger
 {
     /// <summary>
-    /// Configures the Swagger generation options.
+    /// Configures the Swagger generation options
     /// </summary>
     /// <remarks>This allows API versioning to define a Swagger document per API version after the
     /// <see cref="IApiVersionDescriptionProvider"/> service has been resolved from the service container.</remarks>
@@ -23,7 +24,7 @@ namespace CompanyWebApi.Services.Swagger
         private readonly SwaggerConfig _swaggerConfig;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConfigureSwaggerGenOptions"/> class.
+        /// Initializes a new instance of the <see cref="ConfigureSwaggerGenOptions"/> class
         /// </summary>
         /// <param name="apiProvider">The <see cref="IApiVersionDescriptionProvider">apiProvider</see> used to generate Swagger documents.</param>
         /// <param name="swaggerConfig"></param>
@@ -48,7 +49,7 @@ namespace CompanyWebApi.Services.Swagger
                 options.SwaggerDoc(description.GroupName, CreateInfoForApiVersion(description));
             }
 
-            // JWT Bearer Authorization
+            // Add JWT Bearer Authorization
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
@@ -57,6 +58,7 @@ namespace CompanyWebApi.Services.Swagger
                 Type = SecuritySchemeType.ApiKey
             });
 
+            // Add Security Requirement
             options.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
                 {
@@ -75,11 +77,17 @@ namespace CompanyWebApi.Services.Swagger
                 }
             });
 
+            // Include Document file
             var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
             options.IncludeXmlComments(xmlPath);
         }
 
+        /// <summary>
+        /// Create API version
+        /// </summary>
+        /// <param name="description"></param>
+        /// <returns></returns>
         private OpenApiInfo CreateInfoForApiVersion(ApiVersionDescription description)
         {
             var info = new OpenApiInfo()
