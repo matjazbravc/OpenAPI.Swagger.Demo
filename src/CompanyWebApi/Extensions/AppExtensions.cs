@@ -33,7 +33,7 @@ namespace CompanyWebApi.Extensions
         /// <param name="config"></param>
         public static void UseSwaggerMiddleware(this IApplicationBuilder app, IConfiguration config)
         {
-            var swaggerConfig = config.GetSection("SwaggerConfig").Get<SwaggerConfig>();
+            var swaggerConfig = config.GetSection(nameof(SwaggerConfig)).Get<SwaggerConfig>();
             app.UseSwagger(options =>
             {
                 options.RouteTemplate = swaggerConfig.RouteTemplate;

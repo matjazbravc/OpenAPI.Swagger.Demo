@@ -8,18 +8,14 @@ using CompanyWebApi.Middleware;
 using CompanyWebApi.Persistence.DbContexts;
 using CompanyWebApi.Services.Authorization;
 using CompanyWebApi.Services.Repositories;
-using CompanyWebApi.Services.Swagger;
 using CompanyWebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -45,15 +41,13 @@ namespace CompanyWebApi
             // Add the whole configuration object here
             services.AddSingleton(Configuration);
 
+            RegisterConfigurations(services);
+            
             // Configure DI for application services
             RegisterServices(services);
 
-            // Register RedoxApiConfig
-            services.Configure<SwaggerConfig>(Configuration.GetSection("SwaggerConfig"));
-            services.AddTransient(provider => provider.GetService<IOptions<SwaggerConfig>>()?.Value);
-
             // Configure JWT authentication
-            ConfigureAuthentication(services);
+            ConfigureAuthentication(services, Configuration);
 
             services.AddCorsPolicy("EnableCORS");
             services.AddAndConfigureApiVersioning();
@@ -112,19 +106,32 @@ namespace CompanyWebApi
             app.UseCors("EnableCORS");
             app.UseAuthentication();
             app.UseAuthorization();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
         }
 
-        protected virtual void ConfigureAuthentication(IServiceCollection services)
+        /// <summary>
+        /// Register configurations
+        /// </summary>
+        /// <param name="services"></param>
+        protected void RegisterConfigurations(IServiceCollection services)
         {
-            // Configure AuthSettings            
-            var authSettings = Configuration.GetSection(nameof(AuthSettings));
-            services.Configure<AuthSettings>(authSettings);
+            services.Configure<AuthSettings>(Configuration.GetSection(nameof(AuthSettings)));
+            services.Configure<SwaggerConfig>(Configuration.GetSection(nameof(SwaggerConfig)));
+        }
 
-            var key = Encoding.UTF8.GetBytes(authSettings[nameof(AuthSettings.SecretKey)]);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="config"></param>
+        protected void ConfigureAuthentication(IServiceCollection services, IConfiguration config)
+        {
+            var authSettings = config.GetSection(nameof(AuthSettings)).Get<AuthSettings>();
+            var key = Encoding.UTF8.GetBytes(authSettings.SecretKey);
             var signingKey = new SymmetricSecurityKey(key);
             var jwtIssuerOptions = Configuration.GetSection(nameof(JwtIssuerOptions));
 

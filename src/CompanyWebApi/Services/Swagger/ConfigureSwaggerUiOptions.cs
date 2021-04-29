@@ -7,10 +7,13 @@ using System;
 
 namespace CompanyWebApi.Services.Swagger
 {
+    /// <summary>
+    /// Configures the Swagger UI options
+    /// </summary>
     public class ConfigureSwaggerUiOptions : IConfigureOptions<SwaggerUIOptions>
     {
-        private readonly IApiVersionDescriptionProvider _apiProvider;
         private readonly SwaggerConfig _swaggerConfig;
+        private readonly IApiVersionDescriptionProvider _apiProvider;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="ConfigureSwaggerUiOptions"/> class.
@@ -32,6 +35,7 @@ namespace CompanyWebApi.Services.Swagger
             options.DocExpansion(DocExpansion.List);
             options.DefaultModelExpandDepth(0);
 
+            // Configure Swagger JSON endpoints
             foreach (var description in _apiProvider.ApiVersionDescriptions)
             {
                 options.SwaggerEndpoint($"/{_swaggerConfig.RoutePrefix}/{description.GroupName}/docs.json", description.GroupName);

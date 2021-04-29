@@ -1,4 +1,5 @@
 ﻿using CompanyWebApi.Configurations;
+using CompanyWebApi.Services.Swagger.Filters;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -8,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System;
-using CompanyWebApi.Services.Swagger.Filters;
 
 namespace CompanyWebApi.Services.Swagger
 {
