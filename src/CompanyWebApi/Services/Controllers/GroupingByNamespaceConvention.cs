@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using System.Linq;
 
-namespace CompanyWebApi.Services
+namespace CompanyWebApi.Services.Controllers
 {
+    /// <summary>
+    /// Adds a convention to let Swagger understand the different API versions
+    /// </summary>
     public class GroupingByNamespaceConvention : IControllerModelConvention
     {
         public void Apply(ControllerModel controller)

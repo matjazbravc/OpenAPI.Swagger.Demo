@@ -45,7 +45,7 @@ namespace CompanyWebApi.Controllers.V2
         [ProducesResponseType(201, Type = typeof(Company))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        [HttpPost("create")]
+        [HttpPost("create", Name = "CreateCompanyV2")]
         public async Task<IActionResult> CreateAsync([FromBody] Company company, ApiVersion apiVersion)
         {
             Logger.LogDebug(nameof(CreateAsync));
@@ -54,7 +54,7 @@ namespace CompanyWebApi.Controllers.V2
                 return BadRequest(new BadRequestError("The company is null"));
             }
             await _companyRepository.AddAsync(company).ConfigureAwait(false);
-            return CreatedAtRoute("GetCompanyById", new { id = company.CompanyId, version = apiVersion.ToString() }, company);
+            return CreatedAtRoute("GetCompanyByIdV2", new { id = company.CompanyId, version = apiVersion.ToString() }, company);
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace CompanyWebApi.Controllers.V2
         /// <returns></returns>
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        [HttpDelete("{id}", Name = "DeleteCompanyById")]
+        [HttpDelete("{id:int}", Name = "DeleteCompanyByIdV2")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
             Logger.LogDebug(nameof(DeleteAsync));
@@ -87,7 +87,7 @@ namespace CompanyWebApi.Controllers.V2
         /// <returns>List of Companies</returns>
         [ProducesResponseType(200, Type = typeof(IEnumerable<CompanyDto>))]
         [ProducesResponseType(404)]
-        [HttpGet("getAll")]
+        [HttpGet("getAll", Name = "GetAllCompaniesV2")]
         public async Task<ActionResult<IEnumerable<CompanyDto>>> GetAllAsync()
         {
             Logger.LogDebug(nameof(GetAllAsync));
@@ -108,7 +108,7 @@ namespace CompanyWebApi.Controllers.V2
         /// <returns>Return Company</returns>
         [ProducesResponseType(200, Type = typeof(CompanyDto))]
         [ProducesResponseType(404)]
-        [HttpGet("{id}", Name = "GetCompanyById")]
+        [HttpGet("{id:int}", Name = "GetCompanyByIdV2")]
         public async Task<IActionResult> GetByIdAsync(int id)
         {
             Logger.LogDebug(nameof(GetByIdAsync));
@@ -131,7 +131,7 @@ namespace CompanyWebApi.Controllers.V2
         /// <returns>Returns updated Company</returns>
         [ProducesResponseType(201, Type = typeof(CompanyDto))]
         [ProducesResponseType(400)]
-        [HttpPost("update")]
+        [HttpPost("update", Name = "UpdateCompanyV2")]
         public async Task<IActionResult> UpdateAsync([FromBody] Company company, ApiVersion apiVersion)
         {
             Logger.LogDebug(nameof(UpdateAsync));
@@ -144,7 +144,7 @@ namespace CompanyWebApi.Controllers.V2
             {
                 return BadRequest(new BadRequestError("The updated company is null"));
             }
-            return CreatedAtRoute("GetCompanyById", new { id = company.CompanyId, version = apiVersion.ToString() }, company);
+            return CreatedAtRoute("GetCompanyByIdV2", new { id = company.CompanyId, version = apiVersion.ToString() }, company);
         }
     }
 }

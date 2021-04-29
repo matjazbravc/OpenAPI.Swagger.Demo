@@ -39,7 +39,7 @@ namespace CompanyWebApi.Controllers.V2
         /// <param name="model"></param>
         /// <returns>User with token</returns>
 		[AllowAnonymous]
-        [HttpPost("authenticate")]
+        [HttpPost("authenticate", Name = "AuthenticateUserV2")]
         public async Task<IActionResult> AuthenticateAsync([FromBody] AuthenticateModel model)
         {
             var user = await _userService.AuthenticateAsync(model.Username, model.Password).ConfigureAwait(false);
@@ -60,7 +60,7 @@ namespace CompanyWebApi.Controllers.V2
         [ProducesResponseType(201, Type = typeof(User))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        [HttpPost("create", Name = "CreateUser")]
+        [HttpPost("create", Name = "CreateUserV2")]
         public async Task<IActionResult> CreateAsync([FromBody] User user, ApiVersion apiVersion)
         {
             Logger.LogDebug("CreateAsync");
@@ -69,7 +69,7 @@ namespace CompanyWebApi.Controllers.V2
                 return BadRequest(new BadRequestError("The user is null"));
             }
             await _userRepository.AddAsync(user).ConfigureAwait(false);
-            return CreatedAtRoute("GetUserByUserName", new { userName = user.Username, version = apiVersion.ToString() }, user);
+            return CreatedAtRoute("GetUserByUserNameV2", new { userName = user.Username, version = apiVersion.ToString() }, user);
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace CompanyWebApi.Controllers.V2
         /// <returns>Return User</returns>
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        [HttpDelete("{userName}", Name = "DeleteUserByName")]
+        [HttpDelete("{userName}", Name = "DeleteUserByNameV2")]
         public async Task<ActionResult> DeleteAsync(string userName)
         {
             Logger.LogDebug("DeleteAsync");
@@ -105,7 +105,7 @@ namespace CompanyWebApi.Controllers.V2
         /// <returns>List of Users</returns>
         [ProducesResponseType(201, Type = typeof(IList<User>))]
         [ProducesResponseType(400)]
-        [HttpGet("getAll")]
+        [HttpGet("getAll", Name = "GetAllUsersV2")]
         public async Task<ActionResult<IList<User>>> GetAllAsync()
         {
             Logger.LogDebug("GetAllAsync");
@@ -133,7 +133,7 @@ namespace CompanyWebApi.Controllers.V2
         /// <returns>Return User</returns>
         [ProducesResponseType(200, Type = typeof(User))]
         [ProducesResponseType(404)]
-        [HttpGet("{userName}", Name = "GetUserByUserName")]
+        [HttpGet("{userName}", Name = "GetUserByUserNameV2")]
         public async Task<ActionResult<User>> GetAsync(string userName)
         {
             Logger.LogDebug("GetAsync");
@@ -154,7 +154,7 @@ namespace CompanyWebApi.Controllers.V2
         /// <returns>Returns updated User</returns>
         [ProducesResponseType(201, Type = typeof(User))]
         [ProducesResponseType(400)]
-        [HttpPost("update", Name = "UpdateUser")]
+        [HttpPost("update", Name = "UpdateUserV2")]
         public async Task<IActionResult> UpdateAsync([FromBody] User user, ApiVersion apiVersion)
         {
             Logger.LogDebug("UpdateAsync");
@@ -167,7 +167,7 @@ namespace CompanyWebApi.Controllers.V2
             {
                 return BadRequest(new BadRequestError("The updated user is null"));
             }
-            return CreatedAtRoute("GetUserByUserName", new { userName = user.Username, version = apiVersion.ToString() }, user);
+            return CreatedAtRoute("GetUserByUserNameV2", new { userName = user.Username, version = apiVersion.ToString() }, user);
         }
     }
 }

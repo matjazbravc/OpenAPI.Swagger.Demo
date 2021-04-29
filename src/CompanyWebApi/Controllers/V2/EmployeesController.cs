@@ -45,7 +45,7 @@ namespace CompanyWebApi.Controllers.V2
         [ProducesResponseType(201, Type = typeof(Employee))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        [HttpPost("create", Name = "CreateEmployee")]
+        [HttpPost("create", Name = "CreateEmployeeV2")]
         public async Task<IActionResult> CreateAsync([FromBody] Employee employee, ApiVersion apiVersion)
         {
             Logger.LogDebug("CreateAsync");
@@ -54,7 +54,7 @@ namespace CompanyWebApi.Controllers.V2
                 return BadRequest(new BadRequestError("The employee is null"));
             }
             await _employeeRepository.AddAsync(employee);
-            return CreatedAtRoute("GetEmployeeById", new { id = employee.EmployeeId, version = apiVersion.ToString() }, employee);
+            return CreatedAtRoute("GetEmployeeByIdV2", new { id = employee.EmployeeId, version = apiVersion.ToString() }, employee);
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace CompanyWebApi.Controllers.V2
         /// <returns></returns>
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        [HttpDelete("{id}", Name = "DeleteEmployeeById")]
+        [HttpDelete("{id:int}", Name = "DeleteEmployeeByIdV2")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
             Logger.LogDebug("DeleteAsync");
@@ -87,7 +87,7 @@ namespace CompanyWebApi.Controllers.V2
         /// <returns>List of Employees</returns>
         [ProducesResponseType(200, Type = typeof(IEnumerable<EmployeeDto>))]
         [ProducesResponseType(404)]
-        [HttpGet("getAll", Name = "GetAllEmployees")]
+        [HttpGet("getAll", Name = "GetAllEmployeesV2")]
         public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetAllAsync()
         {
             Logger.LogDebug("GetAllAsync");
@@ -110,7 +110,7 @@ namespace CompanyWebApi.Controllers.V2
         [AllowAnonymous]
         [ProducesResponseType(200, Type = typeof(EmployeeDto))]
         [ProducesResponseType(404)]
-        [HttpGet("{id}", Name = "GetEmployeeById")]
+        [HttpGet("{id:int}", Name = "GetEmployeeByIdV2")]
         public async Task<ActionResult<EmployeeDto>> GetAsync(int id)
         {
             Logger.LogDebug("GetAsync");
@@ -132,7 +132,7 @@ namespace CompanyWebApi.Controllers.V2
         /// <returns>Returns updated Employee</returns>
         [ProducesResponseType(201, Type = typeof(EmployeeDto))]
         [ProducesResponseType(400)]
-        [HttpPost("update", Name = "UpdateEmployee")]
+        [HttpPost("update", Name = "UpdateEmployeeV2")]
         public async Task<IActionResult> UpdateAsync([FromBody] Employee employee, ApiVersion apiVersion)
         {
             Logger.LogDebug("UpdateAsync");
@@ -145,7 +145,7 @@ namespace CompanyWebApi.Controllers.V2
             {
                 return BadRequest(new BadRequestError("The updated employee is null"));
             }
-            return CreatedAtRoute("GetEmployeeById", new { id = employee.EmployeeId, version = apiVersion.ToString() }, employee);
+            return CreatedAtRoute("GetEmployeeByIdV2", new { id = employee.EmployeeId, version = apiVersion.ToString() }, employee);
         }
     }
 }

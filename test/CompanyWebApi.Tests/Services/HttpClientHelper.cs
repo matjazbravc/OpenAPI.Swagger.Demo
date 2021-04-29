@@ -44,7 +44,7 @@ namespace CompanyWebApi.Tests.Services
             return await GetContentAsync<TOut>(response);
         }
 
-        private async Task<T> GetContentAsync<T>(HttpResponseMessage response)
+        private static async Task<T> GetContentAsync<T>(HttpResponseMessage response)
         {
             response.EnsureSuccessStatusCode();
             var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);

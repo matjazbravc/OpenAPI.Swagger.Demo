@@ -7,6 +7,7 @@ using CompanyWebApi.Extensions;
 using CompanyWebApi.Middleware;
 using CompanyWebApi.Persistence.DbContexts;
 using CompanyWebApi.Services.Authorization;
+using CompanyWebApi.Services.Controllers;
 using CompanyWebApi.Services.Repositories;
 using CompanyWebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -54,6 +55,7 @@ namespace CompanyWebApi
 
             services.AddControllers(options =>
             {
+                // Adds a convention to let Swagger understand the different API versions
                 options.Conventions.Add(new GroupingByNamespaceConvention());
             })
             .ConfigureApiBehaviorOptions(options =>

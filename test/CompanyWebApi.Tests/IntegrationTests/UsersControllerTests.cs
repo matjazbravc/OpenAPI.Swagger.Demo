@@ -10,12 +10,14 @@ namespace CompanyWebApi.Tests.IntegrationTests
 {
     public class UsersControllerTests : ControllerTestsBase
     {
-        private const string BASE_URL = "/api/v2/users/";
+        private const string API_VERSION = "V2";
+        private readonly string _baseUrl;
         private readonly HttpClientHelper _httpClientHelper;
 
         public UsersControllerTests(WebApiTestFactory factory)
             : base(factory)
         {
+            _baseUrl = $"/api/{API_VERSION.ToLower()}/users/";
             _httpClientHelper = new HttpClientHelper(Client);
         }
 
@@ -51,19 +53,19 @@ namespace CompanyWebApi.Tests.IntegrationTests
             };
 
             _httpClientHelper.Client.SetFakeBearerToken((object)Token);
-            var user = await _httpClientHelper.PostAsync(BASE_URL + "create", newUser).ConfigureAwait(false);
+            var user = await _httpClientHelper.PostAsync(_baseUrl + "create", newUser).ConfigureAwait(false);
             Assert.Equal("testuser", user.Username);
 
             /* Delete new User */
             _httpClientHelper.Client.SetFakeBearerToken((object)Token);
-            await _httpClientHelper.DeleteAsync(BASE_URL + "DeleteUserByName/testuser").ConfigureAwait(false);
+            await _httpClientHelper.DeleteAsync(_baseUrl + $"DeleteUserByName{API_VERSION}/testuser").ConfigureAwait(false);
         }
 
         [Fact]
         public async Task CanGetAllUsers()
         {
             _httpClientHelper.Client.SetFakeBearerToken((object)Token);
-            var users = await _httpClientHelper.GetAsync<List<User>>(BASE_URL + "getall").ConfigureAwait(false);
+            var users = await _httpClientHelper.GetAsync<List<User>>(_baseUrl + "getall").ConfigureAwait(false);
             Assert.Contains(users, p => p.Username == "johnw");
         }
 
@@ -71,7 +73,7 @@ namespace CompanyWebApi.Tests.IntegrationTests
         public async Task CanGetUser()
         {
             _httpClientHelper.Client.SetFakeBearerToken((object)Token);
-            var user = await _httpClientHelper.GetAsync<User>(BASE_URL + "johnw").ConfigureAwait(false);
+            var user = await _httpClientHelper.GetAsync<User>(_baseUrl + "johnw").ConfigureAwait(false);
             Assert.Equal("johnw", user.Username);
         }
 
@@ -88,7 +90,7 @@ namespace CompanyWebApi.Tests.IntegrationTests
             };
 
             _httpClientHelper.Client.SetFakeBearerToken((object)Token);
-            var updatedUser = await _httpClientHelper.PostAsync(BASE_URL + "update", newUser).ConfigureAwait(false);
+            var updatedUser = await _httpClientHelper.PostAsync(_baseUrl + "update", newUser).ConfigureAwait(false);
             Assert.Equal("abcde12345", updatedUser.Password);
         }
 
@@ -97,7 +99,7 @@ namespace CompanyWebApi.Tests.IntegrationTests
         {
             _httpClientHelper.Client.SetFakeBearerToken((object)Token);
             var user = new User { EmployeeId = 1, Username = "johnw", Password = "test", Token = string.Empty };
-            var authenticatedUser = await _httpClientHelper.PostAsync(BASE_URL + "authenticate", user).ConfigureAwait(false);
+            var authenticatedUser = await _httpClientHelper.PostAsync(_baseUrl + "authenticate", user).ConfigureAwait(false);
             Assert.NotNull(authenticatedUser);
         }
     }
