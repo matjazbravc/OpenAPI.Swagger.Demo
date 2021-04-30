@@ -108,16 +108,20 @@ namespace CompanyWebApi
             // A slightly less secure option would be to redirect http to 400, 505, etc.
             app.UseHttpsRedirection();
 
-            // Adds request/response logging middleware
-            app.UseMiddleware<RequestResponseLoggingMiddleware>();
-
-            // Adds middleware for streamlined request logging
-            app.UseSerilogRequestLogging(options =>
+            // NOTE** Add logging middleware(s) only when not runnig from integration/unit tests!
+            if (!UnitTestDetector.IsRunningFromUnitTest())
             {
-                // Customize the message template
-                options.MessageTemplate = "{Host} {Protocol} {RequestMethod} {RequestPath} {EndpointName} {ResponseBody} responded {StatusCode} in {Elapsed} ms";
-                options.EnrichDiagnosticContext = RequestLogHelper.EnrichDiagnosticContext;
-            });
+                // Adds request/response logging middleware
+                app.UseMiddleware<RequestResponseLoggingMiddleware>();
+
+                // Adds middleware for streamlined request logging
+                app.UseSerilogRequestLogging(options =>
+                {
+                    // Customize the message template
+                    options.MessageTemplate = "{Host} {Protocol} {RequestMethod} {RequestPath} {EndpointName} {ResponseBody} responded {StatusCode} in {Elapsed} ms";
+                    options.EnrichDiagnosticContext = RequestLogHelper.EnrichDiagnosticContext;
+                });
+            }
 
             // Adds global error handling middleware
             app.UseApiExceptionHandling();

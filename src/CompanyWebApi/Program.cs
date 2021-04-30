@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using System.IO;
-using Serilog.Events;
 
 namespace CompanyWebApi
 {

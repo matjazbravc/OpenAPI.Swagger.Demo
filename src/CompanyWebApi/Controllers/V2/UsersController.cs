@@ -1,5 +1,4 @@
-﻿using System;
-using CompanyWebApi.Contracts.Entities;
+﻿using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Controllers.Base;
 using CompanyWebApi.Services.Authorization;
 using CompanyWebApi.Services.Repositories;
