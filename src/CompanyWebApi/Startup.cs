@@ -8,6 +8,7 @@ using CompanyWebApi.Middleware;
 using CompanyWebApi.Persistence.DbContexts;
 using CompanyWebApi.Services.Authorization;
 using CompanyWebApi.Services.Controllers;
+using CompanyWebApi.Services.Helpers;
 using CompanyWebApi.Services.Repositories;
 using CompanyWebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -21,7 +22,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System;
-using CompanyWebApi.Services.Helpers;
 
 namespace CompanyWebApi
 {
@@ -108,11 +108,14 @@ namespace CompanyWebApi
             // A slightly less secure option would be to redirect http to 400, 505, etc.
             app.UseHttpsRedirection();
 
+            // Adds request/response logging middleware
+            app.UseMiddleware<RequestResponseLoggingMiddleware>();
+
             // Adds middleware for streamlined request logging
             app.UseSerilogRequestLogging(options =>
             {
                 // Customize the message template
-                options.MessageTemplate = "{Host} {Protocol} {RequestMethod} {RequestPath} {EndpointName} responded {StatusCode} in {Elapsed} ms";
+                options.MessageTemplate = "{Host} {Protocol} {RequestMethod} {RequestPath} {EndpointName} {ResponseBody} responded {StatusCode} in {Elapsed} ms";
                 options.EnrichDiagnosticContext = RequestLogHelper.EnrichDiagnosticContext;
             });
 
@@ -216,6 +219,7 @@ namespace CompanyWebApi
         {
             // Register middlewares
             services.AddTransient<ApiExceptionHandlingMiddleware>();
+            services.AddTransient<RequestResponseLoggingMiddleware>();
 
             // Services
             services.AddTransient<IJwtTokenHandler, JwtTokenHandler>();

@@ -2,3 +2,7 @@
 
 # S3925: "ISerializable" should be implemented correctly
 dotnet_diagnostic.S3925.severity = none
+
+
+# S3168: "async" methods should not return "void"
+dotnet_diagnostic.S3168.severity = silent

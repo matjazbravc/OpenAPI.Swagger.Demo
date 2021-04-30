@@ -21,9 +21,8 @@ namespace CompanyWebApi
                 .UseSerilog((context, services, configuration) => configuration
                     .ReadFrom.Configuration(context.Configuration)
                     .ReadFrom.Services(services)
-                    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                    // Filter out ASP.NET Core infrastructre logs that are Information and below
-                    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                    //.MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                    //.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                     .Enrich.FromLogContext())
                 // Set the content root to be the current directory
                 .UseContentRoot(Directory.GetCurrentDirectory())
