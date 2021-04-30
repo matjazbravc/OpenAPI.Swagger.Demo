@@ -8,16 +8,7 @@ namespace CompanyWebApi.Extensions
     public static class AppExtensions
     {
         /// <summary>
-        /// Adds global error handling middleware
-        /// </summary>
-        /// <param name="app"></param>
-        public static void UseGlobalErrorHandling(this IApplicationBuilder app)
-        {
-            app.UseMiddleware<ApiExceptionHandlingMiddleware>();
-        }
-
-        /// <summary>
-        /// Adds global error handling middleware
+        /// Adds global exception handling middleware
         /// </summary>
         /// <param name="app"></param>
         public static IApplicationBuilder UseApiExceptionHandling(this IApplicationBuilder app)
