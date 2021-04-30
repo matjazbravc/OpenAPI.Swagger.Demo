@@ -20,6 +20,7 @@ namespace CompanyWebApi.Persistence.Configurations
 			// Relationships
 			entity.HasMany(a => a.Employees)
 				.WithOne(b => b.Department)
+                .OnDelete(DeleteBehavior.ClientSetNull)
 				.HasForeignKey(c => c.DepartmentId)
 				.OnDelete(DeleteBehavior.Cascade);
 

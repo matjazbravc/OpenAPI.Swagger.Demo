@@ -43,16 +43,17 @@ namespace CompanyWebApi
             services.AddSingleton(Configuration);
 
             RegisterConfigurations(services);
-            
-            // Configure DI for application services
             RegisterServices(services);
 
-            // Configure JWT authentication
+            // Register services required by authentication services
             ConfigureAuthentication(services, Configuration);
 
             services.AddCorsPolicy("EnableCORS");
+
+            // Adds service API versioning
             services.AddAndConfigureApiVersioning();
 
+            // Adds services for controllers
             services.AddControllers(options =>
             {
                 // Adds a convention to let Swagger understand the different API versions
@@ -67,13 +68,19 @@ namespace CompanyWebApi
                 options.ClientErrorMapping[404].Link = "https://httpstatuses.com/404";
             })
             .AddNewtonsoftJson(options =>
-                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+            {
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            });
 
+            // Adds Swagger support
             services.AddSwaggerMiddleware();
 
             // Add Database Context
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite(Configuration.GetConnectionString("SqLiteConnectionString")));
+            {
+                options.EnableDetailedErrors();
+                options.UseSqlite(Configuration.GetConnectionString("SqLiteConnectionString"));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -83,11 +90,11 @@ namespace CompanyWebApi
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()?.CreateScope())
             {
                 var context = serviceScope?.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                //context.Database.EnsureDeleted();
                 context?.Database.EnsureCreated();
                 SeedData.Initialize(context);
             }
 
+            // Register Swagger and SwaggerUI middleware
             app.UseSwaggerMiddleware(config);
 
             // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
@@ -97,26 +104,30 @@ namespace CompanyWebApi
             // A slightly less secure option would be to redirect http to 400, 505, etc.
             app.UseHttpsRedirection();
 
+            // Adds middleware for streamlined request logging
             app.UseSerilogRequestLogging();
 
-            app.UseGlobalErrorHandling();
+            // Adds global error handling middleware
+            app.UseApiExceptionHandling();
 
-            // Request/Response logging middleware
-            app.UseApiLogging();
-
+            // Adds enpoint routing middleware
             app.UseRouting();
+
+            // Adds a CORS middleware
             app.UseCors("EnableCORS");
+
             app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
+                // Adds enpoints for controller actions without specifyinf any routes
                 endpoints.MapControllers();
             });
         }
 
         /// <summary>
-        /// Register configurations
+        /// Register a configuration instances which TOptions will bind against
         /// </summary>
         /// <param name="services"></param>
         protected void RegisterConfigurations(IServiceCollection services)
@@ -126,7 +137,7 @@ namespace CompanyWebApi
         }
 
         /// <summary>
-        /// 
+        /// Register services required by authentication services
         /// </summary>
         /// <param name="services"></param>
         /// <param name="config"></param>
@@ -186,11 +197,14 @@ namespace CompanyWebApi
             });
         }
 
+        /// <summary>
+        /// Register services and middlewares
+        /// </summary>
+        /// <param name="services"></param>
         protected virtual void RegisterServices(IServiceCollection services)
         {
             // Register middlewares
-            services.AddTransient<ApiLoggingMiddleware>();
-            services.AddTransient<ErrorHandlerMiddleware>();
+            services.AddTransient<ApiExceptionHandlingMiddleware>();
 
             // Services
             services.AddTransient<IJwtTokenHandler, JwtTokenHandler>();

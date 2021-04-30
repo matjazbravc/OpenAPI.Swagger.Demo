@@ -8,23 +8,20 @@ namespace CompanyWebApi.Extensions
     public static class AppExtensions
     {
         /// <summary>
-        /// Adds API logging middleware
-        /// </summary>
-        /// <param name="builder"></param>
-        /// <returns></returns>
-        public static IApplicationBuilder UseApiLogging(this IApplicationBuilder builder)
-        {
-            return builder.UseMiddleware<ApiLoggingMiddleware>();
-        }
-
-        /// <summary>
-        /// Adds error handling middleware
+        /// Adds global error handling middleware
         /// </summary>
         /// <param name="app"></param>
         public static void UseGlobalErrorHandling(this IApplicationBuilder app)
         {
-            app.UseMiddleware<ErrorHandlerMiddleware>();
+            app.UseMiddleware<ApiExceptionHandlingMiddleware>();
         }
+
+        /// <summary>
+        /// Adds global error handling middleware
+        /// </summary>
+        /// <param name="app"></param>
+        public static IApplicationBuilder UseApiExceptionHandling(this IApplicationBuilder app)
+            => app.UseMiddleware<ApiExceptionHandlingMiddleware>();
 
         /// <summary>
         /// Register Swagger and SwaggerUI middleware

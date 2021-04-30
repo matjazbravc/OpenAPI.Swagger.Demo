@@ -1,6 +1,6 @@
-﻿using CompanyWebApi.Contracts.Entities;
+﻿using System;
+using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Controllers.Base;
-using CompanyWebApi.Core.Errors;
 using CompanyWebApi.Services.Authorization;
 using CompanyWebApi.Services.Repositories;
 using Microsoft.AspNetCore.Authorization;
@@ -66,7 +66,7 @@ namespace CompanyWebApi.Controllers.V2
             Logger.LogDebug("CreateAsync");
             if (user == null)
             {
-                return BadRequest(new BadRequestError("The user is null"));
+                return BadRequest(new { message = "The user is null" });
             }
             await _userRepository.AddAsync(user).ConfigureAwait(false);
             return CreatedAtRoute("GetUserByUserNameV2", new { userName = user.Username, version = apiVersion.ToString() }, user);
@@ -88,7 +88,7 @@ namespace CompanyWebApi.Controllers.V2
             var user = await _userRepository.GetSingleAsync(usr => usr.Username == userName).ConfigureAwait(false);
             if (user == null)
             {
-                return NotFound(new NotFoundError("The User was not found"));
+                return NotFound(new { message = "The User was not found"});
             }
             await _userRepository.DeleteAsync(user).ConfigureAwait(false);
             return NoContent();
@@ -112,7 +112,7 @@ namespace CompanyWebApi.Controllers.V2
             var users = await _userRepository.GetAllAsync().ConfigureAwait(false);
             if (!users.Any())
             {
-                return NotFound(new NotFoundError("The Users list is empty"));
+                return NotFound(new { message = "The Users list is empty"});
             }
             var result = users.Select(user => new
             {
@@ -140,7 +140,7 @@ namespace CompanyWebApi.Controllers.V2
             var user = await _userRepository.GetSingleAsync(usr => usr.Username.Equals(userName)).ConfigureAwait(false);
             if (user == null)
             {
-                return NotFound(new NotFoundError("The User was not found"));
+                return NotFound(new { message = "The User was not found"});
             }
             return Ok(user);
         }
@@ -160,12 +160,12 @@ namespace CompanyWebApi.Controllers.V2
             Logger.LogDebug("UpdateAsync");
             if (user == null)
             {
-                return BadRequest(new BadRequestError("The retrieved user is null"));
+                return BadRequest(new { message = "The retrieved user is null" });
             }
             var updatedUser = await _userRepository.UpdateAsync(user);
             if (updatedUser == null)
             {
-                return BadRequest(new BadRequestError("The updated user is null"));
+                return BadRequest(new { message = "The updated user is null" });
             }
             return CreatedAtRoute("GetUserByUserNameV2", new { userName = user.Username, version = apiVersion.ToString() }, user);
         }

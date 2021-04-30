@@ -5,6 +5,9 @@ using System;
 
 namespace CompanyWebApi.Services
 {
+	/// <summary>
+	/// Class for seeding random data
+	/// </summary>
 	public static class SeedData
 	{
 		//https://www.tektutorialshub.com/entity-framework-core-data-seeding/

@@ -2,7 +2,6 @@
 using CompanyWebApi.Contracts.Dto;
 using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Controllers.Base;
-using CompanyWebApi.Core.Errors;
 using CompanyWebApi.Services.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
@@ -51,7 +50,7 @@ namespace CompanyWebApi.Controllers.V2
             Logger.LogDebug(nameof(CreateAsync));
             if (company == null)
             {
-                return BadRequest(new BadRequestError("The company is null"));
+                return BadRequest(new { message = "The company is null" });
             }
             await _companyRepository.AddAsync(company).ConfigureAwait(false);
             return CreatedAtRoute("GetCompanyByIdV2", new { id = company.CompanyId, version = apiVersion.ToString() }, company);
@@ -73,7 +72,7 @@ namespace CompanyWebApi.Controllers.V2
             var company = await _companyRepository.GetSingleAsync(cmp => cmp.CompanyId == id).ConfigureAwait(false);
             if (company == null)
             {
-                return NotFound(new NotFoundError("The company was not found"));
+                return NotFound(new { message = "The company was not found" });
             }
             await _companyRepository.DeleteAsync(company).ConfigureAwait(false);
             return NoContent();
@@ -94,7 +93,7 @@ namespace CompanyWebApi.Controllers.V2
             var companies = await _companyRepository.GetAllAsync().ConfigureAwait(false);
             if (!companies.Any())
             {
-                return NotFound(new NotFoundError("The companies list is empty"));
+                return NotFound(new { message = "The companies list is empty" });
             }
             var companiesDto = _companyToDtoListConverter.Convert(companies);
             return Ok(companiesDto);
@@ -115,7 +114,7 @@ namespace CompanyWebApi.Controllers.V2
             var company = await _companyRepository.GetSingleAsync(comp => comp.CompanyId == id).ConfigureAwait(false);
             if (company == null)
             {
-                return NotFound(new NotFoundError("The company was not found"));
+                return NotFound(new { message = "The company was not found" });
             }
             var companyDto = _companyToDtoConverter.Convert(company);
             return Ok(companyDto);
@@ -137,12 +136,12 @@ namespace CompanyWebApi.Controllers.V2
             Logger.LogDebug(nameof(UpdateAsync));
             if (company == null)
             {
-                return BadRequest(new BadRequestError("The retrieved company is null"));
+                return BadRequest(new { message = "The retrieved company is null" });
             }
             var updatedCompany = await _companyRepository.UpdateAsync(company).ConfigureAwait(false);
             if (updatedCompany == null)
             {
-                return BadRequest(new BadRequestError("The updated company is null"));
+                return BadRequest(new { message = "The updated company is null" });
             }
             return CreatedAtRoute("GetCompanyByIdV2", new { id = company.CompanyId, version = apiVersion.ToString() }, company);
         }

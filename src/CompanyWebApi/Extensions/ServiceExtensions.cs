@@ -11,7 +11,7 @@ namespace CompanyWebApi.Extensions
     public static class ServiceExtensions
     {
         /// <summary>
-        /// Adds API service versioning
+        /// Adds service API versioning
         /// </summary>
         /// <param name="services"></param>
         public static void AddAndConfigureApiVersioning(this IServiceCollection services)

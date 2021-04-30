@@ -2,7 +2,6 @@
 using CompanyWebApi.Contracts.Dto;
 using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Controllers.Base;
-using CompanyWebApi.Core.Errors;
 using CompanyWebApi.Services.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
@@ -51,7 +50,7 @@ namespace CompanyWebApi.Controllers.V2
             Logger.LogDebug("CreateAsync");
             if (employee == null)
             {
-                return BadRequest(new BadRequestError("The employee is null"));
+                return BadRequest(new { message = "The employee is null"});
             }
             await _employeeRepository.AddAsync(employee);
             return CreatedAtRoute("GetEmployeeByIdV2", new { id = employee.EmployeeId, version = apiVersion.ToString() }, employee);
@@ -73,7 +72,7 @@ namespace CompanyWebApi.Controllers.V2
             var employee = await _employeeRepository.GetSingleAsync(emp => emp.EmployeeId == id);
             if (employee == null)
             {
-                return NotFound(new NotFoundError("The employee was not found"));
+                return NotFound(new { message = "The employee was not found"});
             }
             await _employeeRepository.DeleteAsync(employee);
             return NoContent();
@@ -94,7 +93,7 @@ namespace CompanyWebApi.Controllers.V2
             var employees = await _employeeRepository.GetAllAsync().ConfigureAwait(false);
             if (!employees.Any())
             {
-                return NotFound(new NotFoundError("The employees list is empty"));
+                return NotFound(new { message = "The employees list is empty"});
             }
             var employeesDto = _employeeToDtoListConverter.Convert(employees);
             return Ok(employeesDto);
@@ -117,7 +116,7 @@ namespace CompanyWebApi.Controllers.V2
             var employee = await _employeeRepository.GetSingleAsync(emp => emp.EmployeeId == id);
             if (employee == null)
             {
-                return NotFound(new NotFoundError("The employee was not found"));
+                return NotFound(new { message = "The employee was not found"});
             }
             var employeeDto = _employeeToDtoConverter.Convert(employee);
             return Ok(employeeDto);
@@ -138,12 +137,12 @@ namespace CompanyWebApi.Controllers.V2
             Logger.LogDebug("UpdateAsync");
             if (employee == null)
             {
-                return BadRequest(new BadRequestError("The retrieved employee is null"));
+                return BadRequest(new { message = "The retrieved employee is null"});
             }
             var updatedEmployee = await _employeeRepository.UpdateAsync(employee);
             if (updatedEmployee == null)
             {
-                return BadRequest(new BadRequestError("The updated employee is null"));
+                return BadRequest(new { message = "The updated employee is null"});
             }
             return CreatedAtRoute("GetEmployeeByIdV2", new { id = employee.EmployeeId, version = apiVersion.ToString() }, employee);
         }
