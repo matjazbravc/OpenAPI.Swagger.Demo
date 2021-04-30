@@ -21,6 +21,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System;
+using CompanyWebApi.Services.Helpers;
+using Serilog.Events;
 
 namespace CompanyWebApi
 {
@@ -105,7 +107,12 @@ namespace CompanyWebApi
             app.UseHttpsRedirection();
 
             // Adds middleware for streamlined request logging
-            app.UseSerilogRequestLogging();
+            app.UseSerilogRequestLogging(options =>
+            {
+                // Customize the message template
+                options.MessageTemplate = "{Host} {Protocol} {RequestMethod} {RequestPath} {EndpointName} responded {StatusCode} in {Elapsed} ms";
+                options.EnrichDiagnosticContext = RequestLogHelper.EnrichDiagnosticContext;
+            });
 
             // Adds global error handling middleware
             app.UseApiExceptionHandling();
