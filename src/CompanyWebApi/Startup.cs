@@ -22,7 +22,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System;
 using CompanyWebApi.Services.Helpers;
-using Serilog.Events;
 
 namespace CompanyWebApi
 {
@@ -43,6 +42,9 @@ namespace CompanyWebApi
 
             // Add the whole configuration object here
             services.AddSingleton(Configuration);
+
+            // Add health check services
+            services.AddHealthChecks();
 
             RegisterConfigurations(services);
             RegisterServices(services);
@@ -128,6 +130,8 @@ namespace CompanyWebApi
 
             app.UseEndpoints(endpoints =>
             {
+                //Add health check endpoint
+                endpoints.MapHealthChecks("/healthz"); 
                 // Adds enpoints for controller actions without specifyinf any routes
                 endpoints.MapControllers();
             });
