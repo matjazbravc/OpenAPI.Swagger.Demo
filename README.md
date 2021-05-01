@@ -1,147 +1,267 @@
 # OpenAPI.Swagger.Demo
 
-In this comprehensive sample application I would like to show you **how to create JWT secured CRUD OpenAPI** using latest **ASP.NET Core 5.0**, documented with **Swagger** and tested with **Unit** and **Integration tests for secured API**. You will find also how to use **Entity Framework Core** with **SQLite database provider**, how to use **Serilog** for logging requests/responses, how to **generally capture exceptions** with custom middleware, etc. So, let’s start step by step.
+This comprehensive sample application shows **how to create JWT secured, versioned CRUD OpenAPI** using latest **ASP.NET Core 5.0**, documented with **Swagger** and tested with **Unit** and **Integration tests for secured API**. You can find also how to use **Entity Framework Core** with **SQLite database provider**, how to use **Serilog** for logging requests/responses, how to **generally capture exceptions** with custom middleware, etc.
 
 ## OpenAPI
 [OpenAPI](https://swagger.io/specification/) is a widely used industry standard specification for documenting APIs and the [Swagger](https://swagger.io/) is a set of tools that implement this specification. For .NET, there is the [Swashbuckle.AspNetCore NuGet](https://www.nuget.org/packages/Swashbuckle.AspNetCore/) package that automatically produces a JSON document and an HTML, Javascript and CSS based documentation of your REST API based on the implementation of your controller classes and the data they return. Latest version of Swashbuckle supports ASP.NET Core 5.0 and [OpenAPI 3.1](https://www.openapis.org/blog/2021/02/18/openapi-specification-3-1-released), which is the latest version of the specification at the time of creating this demo.
 
 ## Setup OpenAPI/Swagger
-Once you have installed the [Swashbuckle.AspNetCore NuGet](https://www.nuget.org/packages/Swashbuckle.AspNetCore/) package, you add the Swagger generator to the services collection in the **ConfigureServices** method in **Startup** class (see the "Configure Swagger support" line):
+Once you have installed the [Swashbuckle.AspNetCore NuGet](https://www.nuget.org/packages/Swashbuckle.AspNetCore/) package, you add the Swagger generator to the services collection in the **ConfigureServices** method in **Startup** class (see the "Adds Swagger support" line):
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
     ...
     
-    // Configure Swagger support
-    services.AddSwagger();;
-    
+    // Adds Swagger support
+    services.AddSwaggerMiddleware();
+
     ...
 }
 ```
-And ServiceCollection extensions looks like this:
+Middleware is defined in ServiceCollection:
 ```csharp
 public static class ServiceExtensions
 {
     ...
     
-        public static void AddSwagger(this IServiceCollection services)
-        {
-            var configuration = services
-                .BuildServiceProvider()
-                .GetService<IConfiguration>();
+    /// <summary>
+    /// Adds Swagger support
+    /// </summary>
+    /// <param name="services"></param>
+    /// <returns></returns>
+    public static void AddSwaggerMiddleware(this IServiceCollection services)
+    {
+        // Configure Swagger Options
+        services.AddTransient<IConfigureOptions<SwaggerUIOptions>, ConfigureSwaggerUiOptions>();
+        services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerGenOptions>();
 
-            var swaggerOptions = ConfigurationHelper.GetSwaggerOptions(configuration);
-            var swaggerVersions = ConfigurationHelper.GetSwaggerVersions(configuration);
-
-            services.AddSwaggerGen(options =>
-            {
-                foreach (var swaggerVersion in swaggerVersions.OrderByDescending(v => v.Version))
-                {
-                    options.SwaggerDoc(swaggerVersion.Version, new OpenApiInfo
-                    {
-                        Title = swaggerVersion.Title,
-                        Version = swaggerVersion.Version,
-                        Description = swaggerVersion.Description,
-                        Contact = new OpenApiContact
-                        {
-                            Name = swaggerOptions.ContactName,
-                            Email = swaggerOptions.ContactEmail,
-                            Url = new Uri(swaggerOptions.ContactUrl)
-                        },
-                        License = new OpenApiLicense
-                        {
-                            Name = swaggerOptions.LicenseName,
-                            Url = new Uri(swaggerOptions.LicenseUrl)
-                        }
-                    });
-                }
-                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                {
-                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-                    Name = "Authorization",
-                    Scheme = "Bearer",
-                    BearerFormat = "JWT",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey
-                });
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
-                    {
-                          new OpenApiSecurityScheme
-                            {
-                                Reference = new OpenApiReference
-                                {
-                                    Type = ReferenceType.SecurityScheme,
-                                    Id = "Bearer"
-                                }
-                            },
-                            Array.Empty<string>()
-
-                    }
-                });
-                options.DocInclusionPredicate((docName, apiDesc) =>
-                {
-                    var actionApiVersionModel = apiDesc.ActionDescriptor.GetApiVersionModel();
-                    // Would mean this action is unversioned and should be included everywhere
-                    return actionApiVersionModel.DeclaredApiVersions.Any() ? actionApiVersionModel.DeclaredApiVersions.Any(v => $"v{v.ToString()}" == docName) : actionApiVersionModel.ImplementedApiVersions.Any(v => $"v{v.ToString()}" == docName);
-                });
-                var xmlDocFile = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
-                if (File.Exists(xmlDocFile))
-                {
-                    options.IncludeXmlComments(xmlDocFile);
-                }
-                options.DescribeAllParametersInCamelCase();
-                options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
-            });
-        }
+        // Register the Swagger generator
+        services.AddSwaggerGen();
+    }
 
     ...
 }
 ```
-In the **Configure** method, you then enable the middleware that serves the generated JSON document and the web UI that’s generated based on it:
+This approach uses two helpers, first is **ConfigureSwaggerUiOptions** which configure **SwaggerUIOptions**:
+```csharp
+/// <summary>
+/// Configures the Swagger UI options
+/// </summary>
+public class ConfigureSwaggerUiOptions : IConfigureOptions<SwaggerUIOptions>
+{
+    private readonly SwaggerConfig _swaggerConfig;
+    private readonly IApiVersionDescriptionProvider _apiProvider;
+
+    /// <summary>
+    /// Initialises a new instance of the <see cref="ConfigureSwaggerUiOptions"/> class.
+    /// </summary>
+    /// <param name="apiProvider">The API provider.</param>
+    /// <param name="swaggerConfig"></param>
+    public ConfigureSwaggerUiOptions(IApiVersionDescriptionProvider apiProvider, IOptions<SwaggerConfig> swaggerConfig)
+    {
+        _apiProvider = apiProvider ?? throw new ArgumentNullException(nameof(apiProvider));
+        _swaggerConfig = swaggerConfig.Value;
+    }
+
+    /// <inheritdoc />
+    public void Configure(SwaggerUIOptions options)
+    {
+        options = options ?? throw new ArgumentNullException(nameof(options));
+        options.RoutePrefix = _swaggerConfig.RoutePrefix;
+        options.DocumentTitle = _swaggerConfig.Description;
+        options.DocExpansion(DocExpansion.List);
+        options.DefaultModelExpandDepth(0);
+
+        // Configure Swagger JSON endpoints
+        foreach (var description in _apiProvider.ApiVersionDescriptions)
+        {
+            options.SwaggerEndpoint($"/{_swaggerConfig.RoutePrefix}/{description.GroupName}/docs.json", description.GroupName);
+        }
+    }
+}
+```
+A second one is **ConfigureSwaggerGenOptions** which configure **SwaggerGenOptions**:
+```csharp
+/// <summary>
+/// Configures the Swagger generation options
+/// </summary>
+/// <remarks>This allows API versioning to define a Swagger document per API version after the
+/// <see cref="IApiVersionDescriptionProvider"/> service has been resolved from the service container.</remarks>
+public class ConfigureSwaggerGenOptions : IConfigureOptions<SwaggerGenOptions>
+{
+    private readonly string _appName;
+    private readonly IApiVersionDescriptionProvider _apiProvider;
+    private readonly SwaggerConfig _swaggerConfig;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ConfigureSwaggerGenOptions"/> class
+    /// </summary>
+    /// <param name="apiProvider">The <see cref="IApiVersionDescriptionProvider">apiProvider</see> used to generate Swagger documents.</param>
+    /// <param name="swaggerConfig"></param>
+    public ConfigureSwaggerGenOptions(IApiVersionDescriptionProvider apiProvider, IOptions<SwaggerConfig> swaggerConfig)
+    {
+        _apiProvider = apiProvider ?? throw new ArgumentNullException(nameof(apiProvider));
+        _swaggerConfig = swaggerConfig.Value;
+        _appName = Assembly.GetExecutingAssembly().GetName().Name ?? string.Empty;
+    }
+
+    /// <inheritdoc />
+    public void Configure(SwaggerGenOptions options)
+    {
+        // Add a custom operation filter which sets default values
+        options.OperationFilter<SwaggerDefaultValues>();
+
+        // Add a swagger document for each discovered API version
+        // Note: you might choose to skip or document deprecated API versions differently
+        foreach (var description in _apiProvider.ApiVersionDescriptions)
+        {
+            options.SwaggerDoc(description.GroupName, CreateInfoForApiVersion(description));
+        }
+
+        // Add JWT Bearer Authorization
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey
+        });
+
+        // Add Security Requirement
+        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    },
+                    Scheme = "oauth2",
+                    Name = "Bearer",
+                    In = ParameterLocation.Header,
+                },
+                new List<string>()
+            }
+        });
+
+        // Include Document file
+        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        options.IncludeXmlComments(xmlPath);
+    }
+
+    /// <summary>
+    /// Create API version
+    /// </summary>
+    /// <param name="description"></param>
+    /// <returns></returns>
+    private OpenApiInfo CreateInfoForApiVersion(ApiVersionDescription description)
+    {
+        var info = new OpenApiInfo()
+        {
+            Title = _swaggerConfig.Title,
+            Version = description.ApiVersion.ToString(),
+            Description = _swaggerConfig.Description,
+            Contact = new OpenApiContact
+            {
+                Name = _swaggerConfig.ContactName,
+                Email = _swaggerConfig.ContactEmail,
+                Url = new Uri(_swaggerConfig.ContactUrl)
+            },
+            License = new OpenApiLicense
+            {
+                Name = _swaggerConfig.LicenseName,
+                Url = new Uri(_swaggerConfig.LicenseUrl)
+            }
+        };
+
+        if (description.IsDeprecated)
+        {
+            info.Description += " ** THIS API VERSION HAS BEEN DEPRECATED!";
+        }
+
+        return info;
+    }
+}
+```
+
+In the **Configure** method, have to enable the **Swagger** middleware:
 ```csharp
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 {
     ...
     
-    // Enable middleware to serve generated Swagger as a JSON endpoint.
-    app.UseSwagger();
+    // Register Swagger and SwaggerUI middleware
+    app.UseSwaggerMiddleware(config);
     
     ...
 }
 ```
-And ServiceCollection extensions looks like this:
+**UseSwaggerMiddleware** is defined in the AppExtensions:
 ```csharp
-    ...
-    
-    public static void UseSwagger(this IApplicationBuilder app)
+...
+
+/// <summary>
+/// Register Swagger and SwaggerUI middleware
+/// </summary>
+/// <param name="app"></param>
+/// <param name="config"></param>
+public static void UseSwaggerMiddleware(this IApplicationBuilder app, IConfiguration config)
+{
+    var swaggerConfig = config.GetSection(nameof(SwaggerConfig)).Get<SwaggerConfig>();
+    app.UseSwagger(options =>
     {
-        var configuration = app.ApplicationServices.GetService<IConfiguration>();
-        var swaggerVersions = ConfigurationHelper.GetSwaggerVersions(configuration);
+        options.RouteTemplate = swaggerConfig.RouteTemplate;
+    });
+    app.UseSwaggerUI();
+}
 
-        // Enable middleware to serve generated Swagger as a JSON endpoint.
-        SwaggerBuilderExtensions.UseSwagger(app);
-
-        // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint
-        // https://docs.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-3.1&tabs=visual-studio
-        app.UseSwaggerUI(config =>
-        {
-            foreach (var swaggerVersion in swaggerVersions.OrderByDescending(v => v.Version))
-            {
-                config.SwaggerEndpoint(swaggerVersion.UIEndpoint, swaggerVersion.Version);
-            }
-        });
-    }
-    ...
+...
 ```
-Then you can run your app and navigate to **http://localhost:5000/swagger/v1.1/swagger.json** to download the generated JSON document that describes your API. The web UI is at "http://localhost:5000/swagger" by default. You can set the **RoutePrefix** property of the **SwaggerUIOptions** object that gets passed to the UseSwaggerUI method to change the URL.
+In the **launchSettings.json** we've defined several profiles, default one is **Development**:
+```json
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:52330",
+      "sslPort": 0
+    }
+  },
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "Development": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "api-docs/index.html?urls.primaryName=v2",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": "true",
+      "applicationUrl": "https://localhost:5001;http://localhost:5000"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
+      "publishAllPorts": true
+    }
+  }
+}
+```
+As you can notice **launchUrl** points to the custom route and sets **v2** as default API version.
+
+## Run solution
+You can run solution with **Development** profile or navigate to **https://localhost:5001/api-docs/index.html?urls.primaryName=v2**.
 
 ## Setup Serilog
 For logging we are using as usual [Serilog](https://serilog.net/). For this we have to install [Serilog.AspNetCore NuGet](https://www.nuget.org/packages/Serilog.AspNetCore/) package and modify **Program.cs** file like this:
 ```csharp
-
-public class Program
+public static class Program
 {
     public static void Main(string[] args)
     {
@@ -151,8 +271,11 @@ public class Program
     public static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder(args)
             // Configure Serilog
-            .UseSerilog((hostingContext, loggerConfiguration) => loggerConfiguration
-                .ReadFrom.Configuration(hostingContext.Configuration)
+            .UseSerilog((context, services, configuration) => configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                //.MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                //.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                 .Enrich.FromLogContext())
             // Set the content root to be the current directory
             .UseContentRoot(Directory.GetCurrentDirectory())
@@ -171,7 +294,7 @@ public class Program
                 config.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
                 config.AddEnvironmentVariables();
             })
-            .ConfigureLogging((builderContext, logging) =>
+            .ConfigureLogging(logging =>
             {
                 // Clear default logging providers
                 logging.ClearProviders();
@@ -193,33 +316,16 @@ public class Program
   "AuthSettings": {
     "SecretKey": "THIS IS USED TO SIGN AND VERIFY JWT TOKENS, REPLACE IT WITH YOUR OWN SECRET, IT CAN BE ANY STRING"
   },
-  "Swagger": {
-    "SwaggerOptions": {
-      "IncludeXmlComments": true,
-      "ContactName": "Matjaz Bravc",
-      "ContactEmail": "matjaz.bravc@gmail.com",
-      "ContactUrl": "https://matjazbravc.github.io/",
-      "LicenseName": "Licenced under MIT license",
-      "LicenseUrl": "http://opensource.org/licenses/mit-license.php"
-    },
-    "SwaggerVersions": [
-      {
-        "Title": "Company Web API",
-        "Description": "*** DEPRECATED WEB API VERSION ***",
-        "Version": "v1.0",
-        "RoutePrefix": "",
-        "UIEndpoint": "/swagger/v1.0/swagger.json",
-        "Default":  false 
-      },
-      {
-        "Title": "Company Web API",
-        "Description": "OpenAPI Demo",
-        "Version": "v1.1",
-        "RoutePrefix": "",
-        "UIEndpoint": "/swagger/v1.1/swagger.json",
-        "Default": true
-      }
-    ]
+  "SwaggerConfig": {
+    "Title": "Company WebAPI",
+    "Description": "OpenAPI documentation for Company WebAPI",
+    "ContactName": "Matjaz Bravc",
+    "ContactEmail": "matjaz.bravc@gmail.com",
+    "ContactUrl": "https://matjazbravc.github.io/",
+    "LicenseName": "Licenced under MIT license",
+    "LicenseUrl": "http://opensource.org/licenses/mit-license.php",
+    "RoutePrefix": "api-docs",
+    "RouteTemplate": "api-docs/{documentName}/docs.json"
   },
   "Serilog": {
     "Using": [ "Serilog.Sinks.File" ],
@@ -250,7 +356,7 @@ public class Program
         "Name": "File",
         "Args": {
           "path": "./Log/AppLog.txt",
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] [{MemberName}] {Message}{NewLine}{Exception}",
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message}{NewLine}{Exception}",
           "fileSizeLimitBytes": 1073741824, // 1Gb
           "rollingInterval": "Day",
           "rollOnFileSizeLimit": true,
@@ -265,7 +371,6 @@ public class Program
   },
   "AllowedHosts": "*"
 }
-
 ```
 ## Configure SQLite database provider
 For using **SQLite** database provider we have to install [Microsoft.EntityFrameworkCore.Sqlite NuGet](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.Sqlite) package and add database context to the services collection in the **ConfigureServices** method in Startup class:
@@ -299,71 +404,65 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 }
 ```
 ## Setup API Versioning
-Now, in this step we will implement API versioning in Asp.Net Core 5.0 application.
-First-of-all, for using API Versioning we have to install [Microsoft.AspNetCore.Mvc.Versioning NuGet](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Versioning/) package. Then we have to add Service in the **ConfigureServices** method in **Startup** class:
+Now, in this step we will implement API versioning in Asp.Net Core 5.0 application. First-of-all, for using API Versioning we have to install [Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer NuGet](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer/5.0.0) package. Then we have to add Service in the **ConfigureServices** method in **Startup** class:
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
     ...
-    services.AddVersioning();
+    // Adds service API versioning
+    services.AddAndConfigureApiVersioning();
     ...
 }
 ```
-And ServiceCollection extensions looks like this:
+The **AddAndConfigureApiVersioning** middleware is define in  ServiceCollection:
 ```csharp
-
-    public static class ServiceExtensions
+public static class ServiceExtensions
+{
+    ...
+    
+    /// <summary>
+    /// Adds service API versioning
+    /// </summary>
+    /// <param name="services"></param>
+    public static void AddAndConfigureApiVersioning(this IServiceCollection services)
     {
-        ...
-        
-        // Add API Versioning
-        // The default version is 1.1
-        // And we're going to read the version number from the media type
-        // Incoming requests should have a accept header like this: Accept: application/json;v=1.1
-        public static void AddVersioning(this IServiceCollection services)
+        services.Configure<RouteOptions>(options =>
         {
-            var configuration = services
-                .BuildServiceProvider()
-                .GetService<IConfiguration>();
+            options.LowercaseUrls = true;
+        });
 
-            var defaultApiVersion = ConfigurationHelper.GetDefaultApiVersion(configuration);
-            services.AddApiVersioning(config =>
-            {
-                // Default API Version
-                config.DefaultApiVersion = defaultApiVersion;
-                // use default version when version is not specified
-                config.AssumeDefaultVersionWhenUnspecified = true;
-                // Advertise the API versions supported for the particular endpoint
-                config.ReportApiVersions = true;
-            });
-        }
-        
-        ...
+        services.AddApiVersioning(config =>
+        {
+            // Default API Version
+            config.DefaultApiVersion = new ApiVersion(2, 0);
+            // use default version when version is not specified
+            config.AssumeDefaultVersionWhenUnspecified = true;
+            // Advertise the API versions supported for the particular endpoint
+            config.ReportApiVersions = true;
+        });
+
+        services.AddVersionedApiExplorer(options =>
+        {
+            // add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
+            // note: the specified format code will format the version as "'v'major[.minor][-status]"
+            options.GroupNameFormat = "'v'VVV";
+
+            // note: this option is only necessary when versioning by url segment. the SubstitutionFormat
+            // can also be used to control the format of the API version in route templates
+            options.SubstituteApiVersionInUrl = true;
+        });
     }
-
+        
+    ...
+}
 ```
-We will use simple **URL path versioning scheme**. Using a version number directly in the URL path is one of the simplest way of versioning an API. URL path versioning approach is more visible since it explicitly states the version number in the URL itself. To implement URL path versioning, modify the **[Route]** attribute of the controllers to accept API versioning info in the path param like this:
+We use simple **URL path versioning scheme**. Using a version number directly in the URL path is one of the simplest way of versioning an API. URL path versioning approach is more visible since it explicitly states the version number in the URL itself. To implement URL path versioning, modify the **[Route]** attribute of the controllers to accept API versioning info in the path param like this:
 ```csharp
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CompanyWebApi.Contracts.Converters;
-using CompanyWebApi.Contracts.Dto;
-using CompanyWebApi.Contracts.Entities;
-using CompanyWebApi.Controllers.Base;
-using CompanyWebApi.Core.Errors;
-using CompanyWebApi.Services.Repositories;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-
-namespace CompanyWebApi.Controllers
+namespace CompanyWebApi.Controllers.V2
 {
     [Authorize]
     [ApiController]
-    [ApiVersion("1.0", Deprecated = true)]
-    [ApiVersion("1.1")]
+    [ApiVersion("2.0")]
     [Produces("application/json")]
     [EnableCors("EnableCORS")]
     [Route("api/v{version:apiVersion}/[controller]")]
@@ -385,266 +484,61 @@ namespace CompanyWebApi.Controllers
     }
 }
 ```
+To let Swagger understand the different API versions we have to add a "group by name" convention **GroupingByNamespaceConvention** to AddControllers middleware:
+```csharp
+...
+
+// Adds services for controllers
+services.AddControllers(options =>
+{
+    // Adds a convention to let Swagger understand the different API versions
+    options.Conventions.Add(new GroupingByNamespaceConvention());
+})
+.ConfigureApiBehaviorOptions(options =>
+{
+    options.SuppressConsumesConstraintForFormFileParameters = true;
+    options.SuppressInferBindingSourcesForParameters = true;
+    options.SuppressModelStateInvalidFilter = true; // To disable the automatic 400 behavior, set the SuppressModelStateInvalidFilter property to true
+    options.SuppressMapClientErrors = true;
+    options.ClientErrorMapping[404].Link = "https://httpstatuses.com/404";
+})
+.AddNewtonsoftJson(options =>
+{
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+});
+
+...
+```
+
+```csharp
+/// <summary>
+/// Adds a convention to let Swagger understand the different API versions
+/// </summary>
+public class GroupingByNamespaceConvention : IControllerModelConvention
+{
+    public void Apply(ControllerModel controller)
+    {
+        var controllerNamespace = controller.ControllerType.Namespace;
+        var apiVersion = controllerNamespace?.Split(".").Last().ToLower();
+        if (apiVersion == null || !apiVersion.StartsWith("v"))
+        {
+            apiVersion = "v1";
+        }
+        controller.ApiExplorer.GroupName = apiVersion;
+    }
+}
+```
 ## Setup Authentication & Authorization
 **Authentication** is the process of determining a **user's identity**, **authorization** is the process of determining whether a **user has access to a resource**. In ASP.NET Core, authentication is handled by the **IAuthenticationService**, which is used by authentication middleware. The authentication service uses registered authentication handlers to complete authentication-related actions. For using JWT Authentication we have to install [Microsoft.AspNetCore.Authentication.JwtBearer NuGet](https://www.nuget.org/packages/Microsoft.AspNetCore.Authentication.JwtBearer) package. 
 
-## Users Controller
-The Users controller defines and handles all routes for the api that relate to users, this includes authentication and standard CRUD operations. Within each route the controller calls the user service to perform the action required, this enables the controller to stay completely separated from the business logic and data access code.
+## UsersController
+The **UsersController** defines and handles all routes for the api that relate to users, this includes authentication and standard CRUD operations. Within each route the controller calls the user service to perform the action required, this enables the controller to stay completely separated from the business logic and data access code.
 The controller actions are secured with JWT using the **[Authorize]** attribute, with the exception of the **Authenticate method** which allows public access by overriding the **[Authorize]** attribute on the controller with **[AllowAnonymous]** attribute on the action method. I chose this approach so any new action methods added to the controller will be secure by default unless explicitly made public.
-```csharp
-using CompanyWebApi.Contracts.Entities;
-using CompanyWebApi.Controllers.Base;
-using CompanyWebApi.Core.Errors;
-using CompanyWebApi.Services.Authorization;
-using CompanyWebApi.Services.Repositories;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace CompanyWebApi.Controllers
-{
-    [Authorize]
-    [ApiController]
-    [ApiVersion("1.1")]
-    [Produces("application/json")]
-    [EnableCors("EnableCORS")]
-    [Route("api/v{version:apiVersion}/[controller]")]
-    public class UsersController : BaseController<UsersController>
-    {
-        private readonly IUserRepository _userRepository;
-        private readonly IUserService _userService;
-        public UsersController(IUserService userService, IUserRepository userRepository)
-        {
-            _userService = userService;
-            _userRepository = userRepository;
-        }
-
-        /// <summary>
-        /// Authenticate User
-        /// </summary>
-        /// <remarks>Public route that accepts HTTP POST requests containing the username and password in the body.
-        /// If the username and password are correct then a JWT authentication token and the user details are returned.
-        /// </remarks>
-        /// POST /api/users/v1.1/authenticate/{user}
-        /// <param name="model"></param>
-        /// <returns>User with token</returns>
-		[AllowAnonymous]
-        [HttpPost("authenticate")]
-        public async Task<IActionResult> AuthenticateAsync([FromBody] AuthenticateModel model)
-        {
-            var user = await _userService.AuthenticateAsync(model.Username, model.Password).ConfigureAwait(false);
-            if (user == null)
-            {
-                return BadRequest(new { message = "Username or password is incorrect" });
-            }
-            return Ok(user);
-        }
-
-        /// <summary>
-        /// Create User
-        /// </summary>
-        /// <remarks>This API will create new User</remarks>
-        /// POST /api/users/v1.1/create/{user}
-        /// <param name="user">User model</param>
-        /// <param name="apiVersion">API Version</param>
-        [MapToApiVersion("1.1")]
-        [HttpPost("create", Name = "CreateUser")]
-        [ProducesResponseType(201, Type = typeof(User))]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        public async Task<IActionResult> CreateAsync([FromBody] User user, ApiVersion apiVersion)
-        {
-            Logger.LogDebug("CreateAsync");
-            if (user == null)
-            {
-                return BadRequest(new BadRequestError("The user is null"));
-            }
-            await _userRepository.AddAsync(user).ConfigureAwait(false);
-            return CreatedAtRoute("GetUserByUserName", new { userName = user.Username, version = apiVersion.ToString() }, user);
-        }
-
-        /// <summary>
-        /// Delete User
-        /// </summary>
-        /// <remarks>This API will delete User with userName</remarks>
-        /// GET /api/users/v1.1/{userName}
-        /// <param name="userName"></param>
-        /// <returns>Return User</returns>
-        [MapToApiVersion("1.1")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(404)]
-        [HttpDelete("{userName}", Name = "DeleteUserByName")]
-        public async Task<ActionResult> DeleteAsync(string userName)
-        {
-            Logger.LogDebug("DeleteAsync");
-            var user = await _userRepository.GetSingleAsync(usr => usr.Username == userName).ConfigureAwait(false);
-            if (user == null)
-            {
-                return NotFound(new NotFoundError("The User was not found"));
-            }
-            await _userRepository.DeleteAsync(user).ConfigureAwait(false);
-            return NoContent();
-        }
-
-        /// <summary>
-        /// Get all Users
-        /// </summary>
-        /// <remarks>Secure route that accepts HTTP GET requests and returns a list of all the users in the application 
-        /// if the HTTP Authorization header contains a valid JWT token.
-        /// If there is no auth token or the token is invalid then a 401 Unauthorized response is returned.
-        /// </remarks>
-        /// GET /api/users/v1.1/getAll
-        /// <returns>List of Users</returns>
-        [MapToApiVersion("1.1")]
-        [HttpGet("getAll")]
-        public async Task<ActionResult<IList<User>>> GetAllAsync()
-        {
-            Logger.LogDebug("GetAllAsync");
-            var users = await _userRepository.GetAllAsync().ConfigureAwait(false);
-            if (!users.Any())
-            {
-                return NotFound(new NotFoundError("The Users list is empty"));
-            }
-            var result = users.Select(user => new
-            {
-                user.Username,
-                user.Password,
-                EmployeeFirstName = user.Employee?.FirstName,
-                EmployeeLastName = user.Employee?.LastName
-            }).ToList();
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Get User
-        /// </summary>
-        /// <remarks>This API return User with Username</remarks>
-        /// GET /api/users/v1.1/{userName}
-        /// <param name="userName"></param>
-        /// <returns>Return User</returns>
-        [MapToApiVersion("1.1")]
-        [HttpGet("{userName}", Name = "GetUserByUserName")]
-        [ProducesResponseType(200, Type = typeof(User))]
-        [ProducesResponseType(404)]
-        public async Task<ActionResult<User>> GetAsync(string userName)
-        {
-            Logger.LogDebug("GetAsync");
-            var user = await _userRepository.GetSingleAsync(usr => usr.Username.Equals(userName)).ConfigureAwait(false);
-            if (user == null)
-            {
-                return NotFound(new NotFoundError("The User was not found"));
-            }
-            return Ok(user);
-        }
-
-        /// <summary>
-        /// Update User
-        /// </summary>
-        /// POST /api/users/v1.1/update/{user}
-        /// <param name="user"></param>
-        /// <param name="apiVersion">API Version</param>
-        /// <returns>Returns updated User</returns>
-        [MapToApiVersion("1.1")]
-        [HttpPost("update", Name = "UpdateUser")]
-        [ProducesResponseType(201, Type = typeof(User))]
-        [ProducesResponseType(400)]
-        public async Task<IActionResult> UpdateAsync([FromBody] User user, ApiVersion apiVersion)
-        {
-            Logger.LogDebug("UpdateAsync");
-            if (user == null)
-            {
-                return BadRequest(new BadRequestError("The retrieved user is null"));
-            }
-            var updatedUser = await _userRepository.UpdateAsync(user);
-            if (updatedUser == null)
-            {
-                return BadRequest(new BadRequestError("The updated user is null"));
-            }
-            return CreatedAtRoute("GetUserByUserName", new { userName = user.Username, version = apiVersion.ToString() }, user);
-        }
-    }
-}
-```
-## User Entity
-The **User** entity class represents the data for a user in the application. Entity classes are used to pass data between different parts of the application (e.g. between services and controllers) and can be used to return http response data from controller action methods. If multiple types of entities or other custom data is required to be returned from a controller method then a custom model class should be created in the Entities folder for the response.
-```csharp
-using CompanyWebApi.Contracts.Entities.Base;
-using Newtonsoft.Json;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
-using System;
-
-namespace CompanyWebApi.Contracts.Entities
-{
-    [Serializable]
-    [ExcludeFromCodeCoverage]
-    [JsonObject(IsReference = false)]
-    public class User : BaseAuditEntity
-    {
-        [Key, ForeignKey(nameof(Employee))]
-        public int EmployeeId { get; set; }
-        
-        // Navigation property
-        public Employee Employee { get; set; }
-        
-        [Required]
-        public string Username { get; set; }
-        
-        [Required]
-        public string Password { get; set; }
-        
-        public string Token { get; set; }
-        
-        public override string ToString() => $"{EmployeeId}, {Username}";
-    }
-}
-```
-## User Service
-The User service contains a method for authenticating user credentials and returning a JWT token, and all methods for CRUD oprations. **In a production application it is recommended to store user records in a database with hashed passwords.**
+## UserService
+The **UserService** contains a method for authenticating user credentials and returning a JWT token, and all methods for CRUD oprations. **In a production application it is recommended to store user records in a database with hashed passwords.**
 On successful authentication the Authenticate method generates a JWT (JSON Web Token) using the JwtSecurityTokenHandler class which generates a token that is digitally signed using a secret key stored in **appsettings.json**. The JWT token is returned to the client application which must include it in the HTTP **Authorization header** of subsequent requests to secure routes.
-```csharp
-using CompanyWebApi.Configurations;
-using CompanyWebApi.Contracts.Entities;
-using CompanyWebApi.Core.Auth;
-using CompanyWebApi.Services.Repositories;
-using Microsoft.Extensions.Options;
-using System.Threading.Tasks;
 
-namespace CompanyWebApi.Services.Authorization
-{
-	public class UserService : IUserService
-	{
-        private readonly AuthSettings _authSettings;
-        private readonly IUserRepository _userRepository;
-        private readonly IJwtFactory _jwtFactory;
-
-        public UserService(IOptions<AuthSettings> authSettings, IUserRepository userRepository, IJwtFactory jwtFactory)
-        {
-            _userRepository = userRepository;
-            _jwtFactory = jwtFactory;
-            _authSettings = authSettings.Value;
-        }
-        
-        public async Task<User> AuthenticateAsync(string username, string password)
-        {
-            var user = await _userRepository.GetSingleAsync(x => x.Username == username && x.Password == password).ConfigureAwait(false);
-            if (user == null)
-            {
-            	return null;
-            }
-            user.Token = string.IsNullOrEmpty(_authSettings.SecretKey) ? null : _jwtFactory.EncodeToken(user.Username);
-            // Remove password before returning!
-            user.Password = null;
-            return user;
-        }
-    }
-}
-```
 ## JWT Settings
 **IMPORTANT**: The "**SecretKey**" property in configuration file **appsettings.json** is used by the API to sign and verify JWT tokens for authentication, update it with your own random string to ensure nobody else can generate a JWT to gain unauthorised access to your application!
 ```json
@@ -819,12 +713,14 @@ It is worth to mention that environment variable  **ASPNETCORE_ENVIRONMENT=*Dock
 
 ![](res/Docker.jpg)
 
-Navigating to **[http://localhost:10000/swagger](http://localhost:10000/swagger)** opens Swagger UI and you can play with endpoints.
+Navigating to **[http://localhost:10000/api-docs/index.html?urls.primaryName=v2](http://localhost:10000/api-docs/index.html?urls.primaryName=v2)** opens Swagger UI with API v2.
 
 ![](res/DemoScreen1.jpg)
 
+I hope this demo will be a good start for your next OpenAPI project!
+
 ## Prerequisites
-- [Visual Studio](https://www.visualstudio.com/vs/community) 2019 16.8.4 or greater
+- [Visual Studio](https://www.visualstudio.com/vs/community) 2019 16.9.4 or greater
 - [.NET SDK 5.0](https://dotnet.microsoft.com/download/dotnet/5.0)
 - [Docker](https://www.docker.com/resources/what-container)
 
@@ -833,8 +729,6 @@ Navigating to **[http://localhost:10000/swagger](http://localhost:10000/swagger)
 - [Docker](https://www.docker.com/resources/what-container)  
 - [ASP.NET Core 5.0](https://docs.microsoft.com/en-us/aspnet/core/release-notes/aspnetcore-5.0?view=aspnetcore-5.0)
 - [Entity Framework Core 5.0](https://docs.microsoft.com/en-us/ef/core/)
-
-Enjoy!
 
 ## Licence
 Licenced under [MIT](http://opensource.org/licenses/mit-license.php).

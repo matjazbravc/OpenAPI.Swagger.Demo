@@ -13,8 +13,8 @@ namespace CompanyWebApi.Services.Helpers
         public static bool IsRunningFromUnitTest()
         {
             return AppDomain.CurrentDomain.GetAssemblies().Any(assembly => 
-                assembly.FullName.ToLowerInvariant().StartsWith("nunit") ||
-                assembly.FullName.ToLowerInvariant().StartsWith("xunit"));
+                assembly.FullName != null && (assembly.FullName.ToLowerInvariant().StartsWith("nunit") ||
+                                              assembly.FullName.ToLowerInvariant().StartsWith("xunit")));
         }
     }
 }
