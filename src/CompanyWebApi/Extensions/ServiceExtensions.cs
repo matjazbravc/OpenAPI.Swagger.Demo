@@ -1,4 +1,5 @@
 ﻿using CompanyWebApi.Services.Swagger;
+using Microsoft.AspNetCore.Mvc.Versioning.Conventions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -15,14 +16,16 @@ namespace CompanyWebApi.Extensions
         /// <param name="services"></param>
         public static void AddAndConfigureApiVersioning(this IServiceCollection services)
         {
-            services.AddApiVersioning(config =>
+            services.AddApiVersioning(options =>
             {
                 // Specify the default API Version
-                config.DefaultApiVersion = new ApiVersion(2, 0);
+                options.DefaultApiVersion = new ApiVersion(2, 0);
                 // Use default version when version is not specified
-                config.AssumeDefaultVersionWhenUnspecified = true;
+                options.AssumeDefaultVersionWhenUnspecified = true;
                 // Advertise the API versions supported for the particular endpoint
-                config.ReportApiVersions = true;
+                options.ReportApiVersions = true;
+                // Adds a convention to let Swagger understand the different API versions
+                options.Conventions.Add(new VersionByNamespaceConvention());
             });
 
             services.AddVersionedApiExplorer(options =>

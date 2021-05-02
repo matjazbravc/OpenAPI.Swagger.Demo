@@ -7,12 +7,12 @@ using CompanyWebApi.Extensions;
 using CompanyWebApi.Middleware;
 using CompanyWebApi.Persistence.DbContexts;
 using CompanyWebApi.Services.Authorization;
-using CompanyWebApi.Services.Controllers;
 using CompanyWebApi.Services.Helpers;
 using CompanyWebApi.Services.Repositories;
 using CompanyWebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System;
-using Microsoft.AspNetCore.Routing;
 
 namespace CompanyWebApi
 {
@@ -59,23 +58,19 @@ namespace CompanyWebApi
             services.AddAndConfigureApiVersioning();
 
             // Adds services for controllers
-            services.AddControllers(options =>
-            {
-                // Adds a convention to let Swagger understand the different API versions
-                options.Conventions.Add(new GroupingByNamespaceConvention());
-            })
-            .ConfigureApiBehaviorOptions(options =>
-            {
-                options.SuppressConsumesConstraintForFormFileParameters = true;
-                options.SuppressInferBindingSourcesForParameters = true;
-                options.SuppressModelStateInvalidFilter = true; // To disable the automatic 400 behavior, set the SuppressModelStateInvalidFilter property to true
-                options.SuppressMapClientErrors = true;
-                options.ClientErrorMapping[404].Link = "https://httpstatuses.com/404";
-            })
-            .AddNewtonsoftJson(options =>
-            {
-                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
-            });
+            services.AddControllers()
+                .ConfigureApiBehaviorOptions(options =>
+                {
+                    options.SuppressConsumesConstraintForFormFileParameters = true;
+                    options.SuppressInferBindingSourcesForParameters = true;
+                    options.SuppressModelStateInvalidFilter = true; // To disable the automatic 400 behavior, set the SuppressModelStateInvalidFilter property to true
+                    options.SuppressMapClientErrors = true;
+                    options.ClientErrorMapping[404].Link = "https://httpstatuses.com/404";
+                })
+                .AddNewtonsoftJson(options =>
+                {
+                    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                });
 
             // Adds Swagger support
             services.AddSwaggerMiddleware();
