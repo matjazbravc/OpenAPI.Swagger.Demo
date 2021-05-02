@@ -16,8 +16,8 @@
 
         public string LicenseUrl { get; set; }
         
-        public string RoutePrefix { get; set; }
+        public string DocsFile { get; set; }
         
-        public string RouteTemplate { get; set; }
+        public string RoutePrefix { get; set; }
     }
 }

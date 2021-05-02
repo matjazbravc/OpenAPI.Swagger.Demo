@@ -24,7 +24,7 @@ namespace CompanyWebApi.Extensions
             var swaggerConfig = config.GetSection(nameof(SwaggerConfig)).Get<SwaggerConfig>();
             app.UseSwagger(options =>
             {
-                options.RouteTemplate = swaggerConfig.RouteTemplate;
+                options.RouteTemplate = $"{swaggerConfig.RoutePrefix}/{{documentName}}/{swaggerConfig.DocsFile}";
             });
             app.UseSwaggerUI();
         }

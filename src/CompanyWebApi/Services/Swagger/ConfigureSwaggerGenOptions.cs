@@ -80,6 +80,9 @@ namespace CompanyWebApi.Services.Swagger
             var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
             options.IncludeXmlComments(xmlPath);
+
+            // Provide a custom strategy for generating the unique Id's
+            options.CustomSchemaIds(x => x.FullName);
         }
 
         /// <summary>

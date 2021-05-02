@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System;
+using Microsoft.AspNetCore.Routing;
 
 namespace CompanyWebApi
 {
@@ -83,7 +84,10 @@ namespace CompanyWebApi
             services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.EnableDetailedErrors();
-                options.UseSqlite(Configuration.GetConnectionString("SqLiteConnectionString"));
+                options.UseSqlite(Configuration.GetConnectionString("SqLiteConnectionString"), opt =>
+                {
+                    opt.CommandTimeout(15); // secs
+                });
             });
         }
 
@@ -150,6 +154,7 @@ namespace CompanyWebApi
         /// <param name="services"></param>
         protected void RegisterConfigurations(IServiceCollection services)
         {
+            services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
             services.Configure<AuthSettings>(Configuration.GetSection(nameof(AuthSettings)));
             services.Configure<SwaggerConfig>(Configuration.GetSection(nameof(SwaggerConfig)));
         }
