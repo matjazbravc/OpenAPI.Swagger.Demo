@@ -26,6 +26,7 @@
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.0.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.ReDoc" Version="6.1.4" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Log\" />
@@ -35,6 +36,23 @@
     <ProjectReference Include="..\CompanyWebApi.Contracts\CompanyWebApi.Contracts.csproj" />
     <ProjectReference Include="..\CompanyWebApi.Core\CompanyWebApi.Core.csproj" />
     <ProjectReference Include="..\CompanyWebApi.Persistence\CompanyWebApi.Persistence.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Update="wwwroot\swagger\company-logo-swagger.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="wwwroot\swagger\swagger-custom-script.js">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="wwwroot\swagger\swagger-custom-ui-styles.css">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Update="Database\Companies.db">

@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Interfaces;
 
 namespace CompanyWebApi.Services.Swagger
 {
@@ -107,7 +109,17 @@ namespace CompanyWebApi.Services.Swagger
                 {
                     Name = _swaggerConfig.LicenseName,
                     Url = new Uri(_swaggerConfig.LicenseUrl)
+                },
+                // Add a logo to ReDoc page
+                Extensions = new Dictionary<string, IOpenApiExtension>
+                {
+                {
+                "x-logo", new OpenApiObject
+                {
+                    {"url", new OpenApiString("/wwwroot/swagger/company-logo-redoc.png")}
                 }
+            }
+            }
             };
 
             if (description.IsDeprecated)

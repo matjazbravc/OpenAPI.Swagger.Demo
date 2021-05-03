@@ -1,0 +1,17 @@
+﻿.swagger-ui .topbar {
+    background-color: #000;
+}
+
+/*.topbar-wrapper .link:after {
+    content: 'Healthtech';
+    color: #fff;
+    visibility: visible;
+    display: block;
+    position: absolute;
+    padding: 220px;
+}*/
+
+.swagger-ui .topbar .download-url-wrapper .select-label select {
+    border-color: #000;
+    background: #fff;
+}

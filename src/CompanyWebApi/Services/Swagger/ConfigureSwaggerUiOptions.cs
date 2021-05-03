@@ -38,7 +38,7 @@ namespace CompanyWebApi.Services.Swagger
             // Configure Swagger JSON endpoints
             foreach (var description in _apiProvider.ApiVersionDescriptions)
             {
-                options.SwaggerEndpoint($"/{_swaggerConfig.RoutePrefix}/{description.GroupName}/docs.json", description.GroupName);
+                options.SwaggerEndpoint($"/{_swaggerConfig.RoutePrefix}/{description.GroupName}/{_swaggerConfig.DocsFile}", description.GroupName);
             }
         }
     }

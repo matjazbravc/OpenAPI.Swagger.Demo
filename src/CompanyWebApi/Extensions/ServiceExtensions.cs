@@ -31,8 +31,8 @@ namespace CompanyWebApi.Extensions
             services.AddVersionedApiExplorer(options =>
             {
                 // Add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
-                // Note: the specified format code will format the version as "'v'major[.minor][-status]"
-                options.GroupNameFormat = "'v'VVV";
+                // Note: the specified format code will format the version as "'V'major[.minor][-status]"
+                options.GroupNameFormat = "'V'VVV";
 
                 // Note: this option is only necessary when versioning by url segment.
                 // The SubstitutionFormat can also be used to control the format of the API version in route templates.

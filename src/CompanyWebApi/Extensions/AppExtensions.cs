@@ -26,7 +26,27 @@ namespace CompanyWebApi.Extensions
             {
                 options.RouteTemplate = $"{swaggerConfig.RoutePrefix}/{{documentName}}/{swaggerConfig.DocsFile}";
             });
-            app.UseSwaggerUI();
+            app.UseSwaggerUI(options =>
+            {
+                options.InjectStylesheet($"/{swaggerConfig.RoutePrefix}/swagger-custom-ui-styles.css");
+                options.InjectJavascript($"/{swaggerConfig.RoutePrefix}/swagger-custom-script.js");
+            });
         }
+
+        /// <summary>
+        /// Register the ReDoc middleware
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="config"></param>
+        public static void UseReDocMiddleware(this IApplicationBuilder app, IConfiguration config)
+        {
+            var swaggerConfig = config.GetSection(nameof(SwaggerConfig)).Get<SwaggerConfig>();
+            app.UseReDoc(sa =>
+            {
+                sa.DocumentTitle = $"{swaggerConfig.Title} Documentation";
+                sa.SpecUrl = $"/{swaggerConfig.RoutePrefix}/V2/{swaggerConfig.DocsFile}";
+            });
+        }
+
     }
 }

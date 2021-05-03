@@ -22,6 +22,10 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System;
+using System.IO;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.FileProviders;
 
 namespace CompanyWebApi
 {
@@ -87,7 +91,7 @@ namespace CompanyWebApi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IConfiguration config)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IConfiguration config)
         {
             // Configure Database context
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()?.CreateScope())
@@ -96,6 +100,29 @@ namespace CompanyWebApi
                 context?.Database.EnsureCreated();
                 SeedData.Initialize(context);
             }
+
+            // Needed for a ReDoc logo
+            const string LOGO_FILE_PATH = "wwwroot/swagger";
+            var fileprovider = new PhysicalFileProvider(Path.Combine(env.ContentRootPath, LOGO_FILE_PATH));
+            var requestPath = new PathString($"/{LOGO_FILE_PATH}");
+
+            app.UseDefaultFiles(new DefaultFilesOptions
+            {
+                FileProvider = fileprovider,
+                RequestPath = requestPath,
+            });
+
+            app.UseFileServer(new FileServerOptions()
+            {
+                FileProvider = fileprovider,
+                RequestPath = requestPath,
+                EnableDirectoryBrowsing = false
+            });
+
+            app.UseStaticFiles();
+
+            // Register ReDoc middleware
+            app.UseReDocMiddleware(config);
 
             // Register Swagger and SwaggerUI middleware
             app.UseSwaggerMiddleware(config);
