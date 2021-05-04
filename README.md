@@ -690,7 +690,7 @@ That's it! Run all tests, and finally results are as expected :)
 
 **Docker-compose.yml** file with setup for all the containers looks like this:
 ```yml
-version: '3.6'
+version: '3.9'
 
 services:
   companywebapi:
@@ -706,7 +706,7 @@ services:
 ```
 and **Docker-compose.override.yml** file:
 ```yml
-version: '3.6'
+version: '3.9'
 
 services:
   companywebapi:
@@ -743,12 +743,12 @@ It is worth to mention that environment variable  **ASPNETCORE_ENVIRONMENT=*Dock
 
 ![](res/Docker.jpg)
 
-Navigating to **[http://localhost:10000/api-docs/index.html?urls.primaryName=v2](http://localhost:10000/api-docs/index.html?urls.primaryName=v2)** opens Swagger UI with API v2.
+Navigating to **[http://localhost:10000/swagger/index.html?urls.primaryName=v2](http://localhost:10000/swagger/index.html?urls.primaryName=v2)** opens Swagger UI with API v2.
 
 ![](res/DemoScreen1.jpg)
 
 ## API documentation with ReDoc
-We will additionally documents our API with ReDoc. For this we have to include the ReDoc middleware **UseReDocMiddleware** in the Configure method:
+We will additionally document our API with [ReDoc](https://redoc.ly/). For this we have to include the **UseReDocMiddleware** in the Configure method:
 ```csharp
 ...
 
@@ -757,7 +757,7 @@ We will additionally documents our API with ReDoc. For this we have to include t
     
 ...
 ```
-If you run the application by default the swagger interface will appear navigate to {localhost}/api-docs to see the ReDoc interface as the figure below.
+If you run the application by default the swagger interface will appear navigate to **[http://localhost:10000/api-docs](http://localhost:10000/api-docs)** to see the ReDoc interface as the figure below.
 
 ![](res/redoc.jpg)
 
