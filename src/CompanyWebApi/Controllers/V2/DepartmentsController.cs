@@ -40,12 +40,12 @@ namespace CompanyWebApi.Controllers.V2
         /// <remarks>This API will create new Department</remarks>
         /// POST /api/departments/create/{department}
         /// <param name="department">Department model</param>
-        /// <param name="apiVersion">API version</param>
+        /// <param name="version">API version</param>
         [ProducesResponseType(201, Type = typeof(Department))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [HttpPost("create", Name = "CreateDepartmentV2")]
-        public async Task<IActionResult> CreateAsync([FromBody] Department department, ApiVersion apiVersion)
+        public async Task<IActionResult> CreateAsync([FromBody] Department department, ApiVersion version)
         {
             Logger.LogDebug("CreateAsync");
             if (department == null)
@@ -53,7 +53,7 @@ namespace CompanyWebApi.Controllers.V2
                 return BadRequest(new { message = "The department is null" });
             }
             await _departmentRepository.AddAsync(department).ConfigureAwait(false);
-            return CreatedAtRoute("GetDepartmentByIdV2", new { id = department.DepartmentId, version = apiVersion.ToString() }, department);
+            return CreatedAtRoute("GetDepartmentByIdV2", new { id = department.DepartmentId, version = version.ToString() }, department);
         }
 
         /// <summary>
@@ -62,11 +62,12 @@ namespace CompanyWebApi.Controllers.V2
         /// <remarks>This API will delete Department with Id</remarks>
         /// DELETE /api/departments/{id}
         /// <param name="id"></param>
+        /// <param name="version">API version</param>
         /// <returns></returns>
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
         [HttpDelete("{id:int}", Name = "DeleteDepartmentByIdV2")]
-        public async Task<IActionResult> DeleteAsync(int id)
+        public async Task<IActionResult> DeleteAsync(int id, ApiVersion version)
         {
             Logger.LogDebug("DeleteAsync");
             var department = await _departmentRepository.GetSingleAsync(cmp => cmp.DepartmentId == id).ConfigureAwait(false);
@@ -83,11 +84,12 @@ namespace CompanyWebApi.Controllers.V2
         /// </summary>
         /// <remarks>This API return list of all Departments</remarks>
         /// GET api/departments/getAll
+        /// <param name="version">API version</param>
         /// <returns>List of Departments</returns>
         [ProducesResponseType(200, Type = typeof(IEnumerable<DepartmentDto>))]
         [ProducesResponseType(404)]
         [HttpGet("getAll", Name = "GetAllDepartmentsV2")]
-        public async Task<ActionResult<IEnumerable<DepartmentDto>>> GetAllAsync()
+        public async Task<ActionResult<IEnumerable<DepartmentDto>>> GetAllAsync(ApiVersion version)
         {
             Logger.LogDebug("GetAllAsync");
             var departments = await _departmentRepository.GetAllAsync().ConfigureAwait(false);
@@ -105,12 +107,13 @@ namespace CompanyWebApi.Controllers.V2
         /// <remarks>This API return Department with Id</remarks>
         /// GET /api/departments/{id}
         /// <param name="id"></param>
+        /// <param name="version">API version</param>
         /// <returns>Return Department</returns>
         [AllowAnonymous]
         [HttpGet("{id:int}", Name = "GetDepartmentByIdV2")]
         [ProducesResponseType(200, Type = typeof(DepartmentDto))]
         [ProducesResponseType(404)]
-        public async Task<ActionResult<DepartmentDto>> GetAsync(int id)
+        public async Task<ActionResult<DepartmentDto>> GetAsync(int id, ApiVersion version)
         {
             Logger.LogDebug("GetAsync");
             var department = await _departmentRepository.GetSingleAsync(cmp => cmp.DepartmentId == id).ConfigureAwait(false);
@@ -127,12 +130,12 @@ namespace CompanyWebApi.Controllers.V2
         /// </summary>
         /// POST /api/departments/update/{department}
         /// <param name="department"></param>
-        /// <param name="apiVersion">API version</param>
+        /// <param name="version">API version</param>
         /// <returns>Returns updated Department</returns>
         [ProducesResponseType(201, Type = typeof(DepartmentDto))]
         [ProducesResponseType(400)]
         [HttpPost("update", Name = "UpdateDepartmentV2")]
-        public async Task<IActionResult> UpdateAsync([FromBody] Department department, ApiVersion apiVersion)
+        public async Task<IActionResult> UpdateAsync([FromBody] Department department, ApiVersion version)
         {
             Logger.LogDebug("UpdateAsync");
             if (department == null)
@@ -144,7 +147,7 @@ namespace CompanyWebApi.Controllers.V2
             {
                 return BadRequest(new { message = "The updated department is null" });
             }
-            return CreatedAtRoute("GetDepartmentByIdV2", new { id = department.DepartmentId, version = apiVersion.ToString() }, department);
+            return CreatedAtRoute("GetDepartmentByIdV2", new { id = department.DepartmentId, version = version.ToString() }, department);
         }
     }
 }

@@ -36,10 +36,11 @@ namespace CompanyWebApi.Controllers.V2
         /// </remarks>
         /// POST /api/users/v1.1/authenticate/{user}
         /// <param name="model"></param>
+        /// <param name="version">API version</param>
         /// <returns>User with token</returns>
 		[AllowAnonymous]
         [HttpPost("authenticate", Name = "AuthenticateUserV2")]
-        public async Task<IActionResult> AuthenticateAsync([FromBody] AuthenticateModel model)
+        public async Task<IActionResult> AuthenticateAsync([FromBody] AuthenticateModel model, ApiVersion version)
         {
             var user = await _userService.AuthenticateAsync(model.Username, model.Password).ConfigureAwait(false);
             if (user == null)
@@ -55,12 +56,12 @@ namespace CompanyWebApi.Controllers.V2
         /// <remarks>This API will create new User</remarks>
         /// POST /api/users/v1.1/create/{user}
         /// <param name="user">User model</param>
-        /// <param name="apiVersion">API Version</param>
+        /// <param name="version">API Version</param>
         [ProducesResponseType(201, Type = typeof(User))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [HttpPost("create", Name = "CreateUserV2")]
-        public async Task<IActionResult> CreateAsync([FromBody] User user, ApiVersion apiVersion)
+        public async Task<IActionResult> CreateAsync([FromBody] User user, ApiVersion version)
         {
             Logger.LogDebug("CreateAsync");
             if (user == null)
@@ -68,7 +69,7 @@ namespace CompanyWebApi.Controllers.V2
                 return BadRequest(new { message = "The user is null" });
             }
             await _userRepository.AddAsync(user).ConfigureAwait(false);
-            return CreatedAtRoute("GetUserByUserNameV2", new { userName = user.Username, version = apiVersion.ToString() }, user);
+            return CreatedAtRoute("GetUserByUserNameV2", new { userName = user.Username, version = version.ToString() }, user);
         }
 
         /// <summary>
@@ -77,11 +78,12 @@ namespace CompanyWebApi.Controllers.V2
         /// <remarks>This API will delete User with userName</remarks>
         /// GET /api/users/v1.1/{userName}
         /// <param name="userName"></param>
+        /// <param name="version">API version</param>
         /// <returns>Return User</returns>
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
         [HttpDelete("{userName}", Name = "DeleteUserByNameV2")]
-        public async Task<ActionResult> DeleteAsync(string userName)
+        public async Task<ActionResult> DeleteAsync(string userName, ApiVersion version)
         {
             Logger.LogDebug("DeleteAsync");
             var user = await _userRepository.GetSingleAsync(usr => usr.Username == userName).ConfigureAwait(false);
@@ -101,11 +103,12 @@ namespace CompanyWebApi.Controllers.V2
         /// If there is no auth token or the token is invalid then a 401 Unauthorized response is returned.
         /// </remarks>
         /// GET /api/users/v1.1/getAll
+        /// <param name="version">API version</param>
         /// <returns>List of Users</returns>
         [ProducesResponseType(201, Type = typeof(IList<User>))]
         [ProducesResponseType(400)]
         [HttpGet("getAll", Name = "GetAllUsersV2")]
-        public async Task<ActionResult<IList<User>>> GetAllAsync()
+        public async Task<ActionResult<IList<User>>> GetAllAsync(ApiVersion version)
         {
             Logger.LogDebug("GetAllAsync");
             var users = await _userRepository.GetAllAsync().ConfigureAwait(false);
@@ -129,11 +132,12 @@ namespace CompanyWebApi.Controllers.V2
         /// <remarks>This API return User with Username</remarks>
         /// GET /api/users/v1.1/{userName}
         /// <param name="userName"></param>
+        /// <param name="version">API version</param>
         /// <returns>Return User</returns>
         [ProducesResponseType(200, Type = typeof(User))]
         [ProducesResponseType(404)]
         [HttpGet("{userName}", Name = "GetUserByUserNameV2")]
-        public async Task<ActionResult<User>> GetAsync(string userName)
+        public async Task<ActionResult<User>> GetAsync(string userName, ApiVersion version)
         {
             Logger.LogDebug("GetAsync");
             var user = await _userRepository.GetSingleAsync(usr => usr.Username.Equals(userName)).ConfigureAwait(false);
@@ -149,12 +153,12 @@ namespace CompanyWebApi.Controllers.V2
         /// </summary>
         /// POST /api/users/v1.1/update/{user}
         /// <param name="user"></param>
-        /// <param name="apiVersion">API Version</param>
+        /// <param name="version">API Version</param>
         /// <returns>Returns updated User</returns>
         [ProducesResponseType(201, Type = typeof(User))]
         [ProducesResponseType(400)]
         [HttpPost("update", Name = "UpdateUserV2")]
-        public async Task<IActionResult> UpdateAsync([FromBody] User user, ApiVersion apiVersion)
+        public async Task<IActionResult> UpdateAsync([FromBody] User user, ApiVersion version)
         {
             Logger.LogDebug("UpdateAsync");
             if (user == null)
@@ -166,7 +170,7 @@ namespace CompanyWebApi.Controllers.V2
             {
                 return BadRequest(new { message = "The updated user is null" });
             }
-            return CreatedAtRoute("GetUserByUserNameV2", new { userName = user.Username, version = apiVersion.ToString() }, user);
+            return CreatedAtRoute("GetUserByUserNameV2", new { userName = user.Username, version = version.ToString() }, user);
         }
     }
 }

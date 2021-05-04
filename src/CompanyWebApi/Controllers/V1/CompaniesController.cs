@@ -40,20 +40,20 @@ namespace CompanyWebApi.Controllers.V1
         /// <remarks>This API will create new Company</remarks>
         /// POST /api/companies/create/{company}
         /// <param name="company">Company model</param>
-        /// <param name="apiVersion">API version</param>
+        /// <param name="version">API version</param>
         [ProducesResponseType(201, Type = typeof(Company))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [HttpPost("create", Name = "CreateCompanyV1")]
-        public async Task<IActionResult> CreateAsync([FromBody] Company company, ApiVersion apiVersion)
+        public async Task<IActionResult> CreateAsync([FromBody] Company company, ApiVersion version)
         {
             Logger.LogDebug(nameof(CreateAsync));
             if (company == null)
             {
-                return BadRequest(new { message = "The company is null"});
+                return BadRequest(new { message = "The company is null" });
             }
             await _companyRepository.AddAsync(company).ConfigureAwait(false);
-            return CreatedAtRoute("GetCompanyByIdV1", new { id = company.CompanyId, version = apiVersion.ToString() }, company);
+            return CreatedAtRoute("GetCompanyByIdV1", new { id = company.CompanyId, version = version.ToString() }, company);
         }
 
         /// <summary>
@@ -62,17 +62,18 @@ namespace CompanyWebApi.Controllers.V1
         /// <remarks>This API will delete Company with Id</remarks>
         /// DELETE /api/companies/{id}
         /// <param name="id"></param>
+        /// <param name="version">API version</param>
         /// <returns></returns>
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
         [HttpDelete("{id:int}", Name = "DeleteCompanyByIdV1")]
-        public async Task<IActionResult> DeleteAsync(int id)
+        public async Task<IActionResult> DeleteAsync(int id, ApiVersion version)
         {
             Logger.LogDebug(nameof(DeleteAsync));
             var company = await _companyRepository.GetSingleAsync(cmp => cmp.CompanyId == id).ConfigureAwait(false);
             if (company == null)
             {
-                return NotFound(new { message = "The company was not found"});
+                return NotFound(new { message = "The company was not found" });
             }
             await _companyRepository.DeleteAsync(company).ConfigureAwait(false);
             return NoContent();
@@ -83,17 +84,18 @@ namespace CompanyWebApi.Controllers.V1
         /// </summary>
         /// <remarks>This API return list of all Companies</remarks>
         /// GET api/companies/getall
+        /// <param name="version">API version</param>
         /// <returns>List of Companies</returns>
         [ProducesResponseType(200, Type = typeof(IEnumerable<CompanyDto>))]
         [ProducesResponseType(404)]
         [HttpGet("getAll", Name = "GetAllCompaniesV1")]
-        public async Task<ActionResult<IEnumerable<CompanyDto>>> GetAllAsync()
+        public async Task<ActionResult<IEnumerable<CompanyDto>>> GetAllAsync(ApiVersion version)
         {
             Logger.LogDebug(nameof(GetAllAsync));
             var companies = await _companyRepository.GetAllAsync().ConfigureAwait(false);
             if (!companies.Any())
             {
-                return NotFound(new { message = "The companies list is empty"});
+                return NotFound(new { message = "The companies list is empty" });
             }
             var companiesDto = _companyToDtoListConverter.Convert(companies);
             return Ok(companiesDto);
@@ -104,17 +106,18 @@ namespace CompanyWebApi.Controllers.V1
         /// <remarks>This API return Company with Id</remarks>
         /// GET /api/companies/{id}
         /// <param name="id">Company Id</param>
+        /// <param name="version">API version</param>
         /// <returns>Return Company</returns>
         [ProducesResponseType(200, Type = typeof(CompanyDto))]
         [ProducesResponseType(404)]
         [HttpGet("{id:int}", Name = "GetCompanyByIdV1")]
-        public async Task<IActionResult> GetByIdAsync(int id)
+        public async Task<IActionResult> GetByIdAsync(int id, ApiVersion version)
         {
             Logger.LogDebug(nameof(GetByIdAsync));
             var company = await _companyRepository.GetSingleAsync(comp => comp.CompanyId == id).ConfigureAwait(false);
             if (company == null)
             {
-                return NotFound(new { message = "The company was not found"});
+                return NotFound(new { message = "The company was not found" });
             }
             var companyDto = _companyToDtoConverter.Convert(company);
             return Ok(companyDto);
@@ -126,24 +129,24 @@ namespace CompanyWebApi.Controllers.V1
         /// <remarks>This API updates a company</remarks>
         /// POST /api/companies/update/{company}
         /// <param name="company">Company model</param>
-        /// <param name="apiVersion">API version</param>
+        /// <param name="version">API version</param>
         /// <returns>Returns updated Company</returns>
         [ProducesResponseType(201, Type = typeof(CompanyDto))]
         [ProducesResponseType(400)]
         [HttpPost("update", Name = "UpdateCompanyV1")]
-        public async Task<IActionResult> UpdateAsync([FromBody] Company company, ApiVersion apiVersion)
+        public async Task<IActionResult> UpdateAsync([FromBody] Company company, ApiVersion version)
         {
             Logger.LogDebug(nameof(UpdateAsync));
             if (company == null)
             {
-                return BadRequest(new { message = "The retrieved company is null"});
+                return BadRequest(new { message = "The retrieved company is null" });
             }
             var updatedCompany = await _companyRepository.UpdateAsync(company).ConfigureAwait(false);
             if (updatedCompany == null)
             {
-                return BadRequest(new { message = "The updated company is null"});
+                return BadRequest(new { message = "The updated company is null" });
             }
-            return CreatedAtRoute("GetCompanyByIdV1", new { id = company.CompanyId, version = apiVersion.ToString() }, company);
+            return CreatedAtRoute("GetCompanyByIdV1", new { id = company.CompanyId, version = version.ToString() }, company);
         }
     }
 }

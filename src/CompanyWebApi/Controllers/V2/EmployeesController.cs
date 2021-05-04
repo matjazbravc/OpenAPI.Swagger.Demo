@@ -40,12 +40,12 @@ namespace CompanyWebApi.Controllers.V2
         /// <remarks>This API will create new Employee</remarks>
         /// POST /api/employees/create/{employee}
         /// <param name="employee">Employee model</param>
-        /// <param name="apiVersion">API version</param>
+        /// <param name="version">API version</param>
         [ProducesResponseType(201, Type = typeof(Employee))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [HttpPost("create", Name = "CreateEmployeeV2")]
-        public async Task<IActionResult> CreateAsync([FromBody] Employee employee, ApiVersion apiVersion)
+        public async Task<IActionResult> CreateAsync([FromBody] Employee employee, ApiVersion version)
         {
             Logger.LogDebug("CreateAsync");
             if (employee == null)
@@ -53,7 +53,7 @@ namespace CompanyWebApi.Controllers.V2
                 return BadRequest(new { message = "The employee is null"});
             }
             await _employeeRepository.AddAsync(employee);
-            return CreatedAtRoute("GetEmployeeByIdV2", new { id = employee.EmployeeId, version = apiVersion.ToString() }, employee);
+            return CreatedAtRoute("GetEmployeeByIdV2", new { id = employee.EmployeeId, version = version.ToString() }, employee);
         }
 
         /// <summary>
@@ -62,11 +62,12 @@ namespace CompanyWebApi.Controllers.V2
         /// <remarks>This API will delete Employee with Id</remarks>
         /// DELETE /api/employees/{id}
         /// <param name="id"></param>
+        /// <param name="version">API version</param>
         /// <returns></returns>
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
         [HttpDelete("{id:int}", Name = "DeleteEmployeeByIdV2")]
-        public async Task<IActionResult> DeleteAsync(int id)
+        public async Task<IActionResult> DeleteAsync(int id, ApiVersion version)
         {
             Logger.LogDebug("DeleteAsync");
             var employee = await _employeeRepository.GetSingleAsync(emp => emp.EmployeeId == id);
@@ -83,11 +84,12 @@ namespace CompanyWebApi.Controllers.V2
         /// </summary>
         /// <remarks>This API return list of all Employees</remarks>
         /// GET api/employees/getall
+        /// <param name="version">API version</param>
         /// <returns>List of Employees</returns>
         [ProducesResponseType(200, Type = typeof(IEnumerable<EmployeeDto>))]
         [ProducesResponseType(404)]
         [HttpGet("getAll", Name = "GetAllEmployeesV2")]
-        public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetAllAsync()
+        public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetAllAsync(ApiVersion version)
         {
             Logger.LogDebug("GetAllAsync");
             var employees = await _employeeRepository.GetAllAsync().ConfigureAwait(false);
@@ -105,12 +107,13 @@ namespace CompanyWebApi.Controllers.V2
         /// <remarks>This API return Employee with Id</remarks>
         /// GET /api/employees/{id}
         /// <param name="id"></param>
+        /// <param name="version">API version</param>
         /// <returns>Return Employee</returns>
         [AllowAnonymous]
         [ProducesResponseType(200, Type = typeof(EmployeeDto))]
         [ProducesResponseType(404)]
         [HttpGet("{id:int}", Name = "GetEmployeeByIdV2")]
-        public async Task<ActionResult<EmployeeDto>> GetAsync(int id)
+        public async Task<ActionResult<EmployeeDto>> GetAsync(int id, ApiVersion version)
         {
             Logger.LogDebug("GetAsync");
             var employee = await _employeeRepository.GetSingleAsync(emp => emp.EmployeeId == id);
@@ -127,12 +130,12 @@ namespace CompanyWebApi.Controllers.V2
         /// </summary>
         /// POST /api/employees/update/{employee}
         /// <param name="employee"></param>
-        /// <param name="apiVersion">API version</param>
+        /// <param name="version">API version</param>
         /// <returns>Returns updated Employee</returns>
         [ProducesResponseType(201, Type = typeof(EmployeeDto))]
         [ProducesResponseType(400)]
         [HttpPost("update", Name = "UpdateEmployeeV2")]
-        public async Task<IActionResult> UpdateAsync([FromBody] Employee employee, ApiVersion apiVersion)
+        public async Task<IActionResult> UpdateAsync([FromBody] Employee employee, ApiVersion version)
         {
             Logger.LogDebug("UpdateAsync");
             if (employee == null)
@@ -144,7 +147,7 @@ namespace CompanyWebApi.Controllers.V2
             {
                 return BadRequest(new { message = "The updated employee is null"});
             }
-            return CreatedAtRoute("GetEmployeeByIdV2", new { id = employee.EmployeeId, version = apiVersion.ToString() }, employee);
+            return CreatedAtRoute("GetEmployeeByIdV2", new { id = employee.EmployeeId, version = version.ToString() }, employee);
         }
     }
 }
