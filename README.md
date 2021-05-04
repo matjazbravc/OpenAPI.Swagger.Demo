@@ -519,48 +519,43 @@ namespace CompanyWebApi.Controllers.V2
     }
 }
 ```
-To let Swagger understand the different API versions we have to add a "group by name" convention **GroupingByNamespaceConvention** to AddControllers middleware:
+To let Swagger understand the different API versions we have to add a "group by name" convention **VersionByNamespaceConvention** to **AddAndConfigureApiVersioning** middleware:
 ```csharp
+public static class ServiceExtensions
+{
 ...
 
-// Adds services for controllers
-services.AddControllers(options =>
-{
-    // Adds a convention to let Swagger understand the different API versions
-    options.Conventions.Add(new GroupingByNamespaceConvention());
-})
-.ConfigureApiBehaviorOptions(options =>
-{
-    options.SuppressConsumesConstraintForFormFileParameters = true;
-    options.SuppressInferBindingSourcesForParameters = true;
-    options.SuppressModelStateInvalidFilter = true; // To disable the automatic 400 behavior, set the SuppressModelStateInvalidFilter property to true
-    options.SuppressMapClientErrors = true;
-    options.ClientErrorMapping[404].Link = "https://httpstatuses.com/404";
-})
-.AddNewtonsoftJson(options =>
-{
-    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
-});
-
-...
-```
-
-```csharp
-/// <summary>
-/// Adds a convention to let Swagger understand the different API versions
-/// </summary>
-public class GroupingByNamespaceConvention : IControllerModelConvention
-{
-    public void Apply(ControllerModel controller)
+    /// <summary>
+    /// Adds service API versioning
+    /// </summary>
+    /// <param name="services"></param>
+    public static void AddAndConfigureApiVersioning(this IServiceCollection services)
     {
-        var controllerNamespace = controller.ControllerType.Namespace;
-        var apiVersion = controllerNamespace?.Split(".").Last().ToLower();
-        if (apiVersion == null || !apiVersion.StartsWith("v"))
+        services.AddApiVersioning(options =>
         {
-            apiVersion = "v1";
-        }
-        controller.ApiExplorer.GroupName = apiVersion;
+            // Specify the default API Version
+            options.DefaultApiVersion = new ApiVersion(2, 0);
+            // Use default version when version is not specified
+            options.AssumeDefaultVersionWhenUnspecified = true;
+            // Advertise the API versions supported for the particular endpoint
+            options.ReportApiVersions = true;
+            // Adds a convention to let Swagger understand the different API versions
+            options.Conventions.Add(new VersionByNamespaceConvention());
+        });
+
+        services.AddVersionedApiExplorer(options =>
+        {
+            // Add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
+            // Note: the specified format code will format the version as "'V'major[.minor][-status]"
+            options.GroupNameFormat = "'V'VVV";
+
+            // Note: this option is only necessary when versioning by url segment.
+            // The SubstitutionFormat can also be used to control the format of the API version in route templates.
+            options.SubstituteApiVersionInUrl = true;
+        });
     }
+    
+...
 }
 ```
 ## Setup Authentication & Authorization
