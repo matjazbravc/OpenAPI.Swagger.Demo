@@ -175,6 +175,16 @@ public class ConfigureSwaggerGenOptions : IConfigureOptions<SwaggerGenOptions>
             {
                 Name = _swaggerConfig.LicenseName,
                 Url = new Uri(_swaggerConfig.LicenseUrl)
+            },
+            // Add a logo to ReDoc page
+            Extensions = new Dictionary<string, IOpenApiExtension>
+            {
+                {
+                    "x-logo", new OpenApiObject
+                    {
+                        {"url", new OpenApiString("/wwwroot/swagger/company-logo-redoc.png")}
+                    }
+                }
             }
         };
 
@@ -202,24 +212,49 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 ```
 **UseSwaggerMiddleware** is defined in the AppExtensions:
 ```csharp
-...
-
-/// <summary>
-/// Register Swagger and SwaggerUI middleware
-/// </summary>
-/// <param name="app"></param>
-/// <param name="config"></param>
-public static void UseSwaggerMiddleware(this IApplicationBuilder app, IConfiguration config)
+public static class AppExtensions
 {
-    var swaggerConfig = config.GetSection(nameof(SwaggerConfig)).Get<SwaggerConfig>();
-    app.UseSwagger(options =>
-    {
-        options.RouteTemplate = swaggerConfig.RouteTemplate;
-    });
-    app.UseSwaggerUI();
-}
+    /// <summary>
+    /// Adds global exception handling middleware
+    /// </summary>
+    /// <param name="app"></param>
+    public static IApplicationBuilder UseApiExceptionHandling(this IApplicationBuilder app)
+        => app.UseMiddleware<ApiExceptionHandlingMiddleware>();
 
-...
+    /// <summary>
+    /// Register Swagger and SwaggerUI middleware
+    /// </summary>
+    /// <param name="app"></param>
+    /// <param name="config"></param>
+    public static void UseSwaggerMiddleware(this IApplicationBuilder app, IConfiguration config)
+    {
+        var swaggerConfig = config.GetSection(nameof(SwaggerConfig)).Get<SwaggerConfig>();
+        app.UseSwagger(options =>
+        {
+            options.RouteTemplate = $"{swaggerConfig.RoutePrefix}/{{documentName}}/{swaggerConfig.DocsFile}";
+        });
+        app.UseSwaggerUI(options =>
+        {
+            options.InjectStylesheet($"/{swaggerConfig.RoutePrefix}/swagger-custom-ui-styles.css");
+            options.InjectJavascript($"/{swaggerConfig.RoutePrefix}/swagger-custom-script.js");
+        });
+    }
+
+    /// <summary>
+    /// Register the ReDoc middleware
+    /// </summary>
+    /// <param name="app"></param>
+    /// <param name="config"></param>
+    public static void UseReDocMiddleware(this IApplicationBuilder app, IConfiguration config)
+    {
+        var swaggerConfig = config.GetSection(nameof(SwaggerConfig)).Get<SwaggerConfig>();
+        app.UseReDoc(sa =>
+        {
+            sa.DocumentTitle = $"{swaggerConfig.Title} Documentation";
+            sa.SpecUrl = $"/{swaggerConfig.RoutePrefix}/V2/{swaggerConfig.DocsFile}";
+        });
+    }
+}
 ```
 In the **launchSettings.json** we've defined several profiles, default one is **Development**:
 ```json
@@ -717,7 +752,25 @@ Navigating to **[http://localhost:10000/api-docs/index.html?urls.primaryName=v2]
 
 ![](res/DemoScreen1.jpg)
 
-I hope this demo will be a good start for your next OpenAPI project!
+## API documentation with ReDoc
+We will additionally documents our API with ReDoc. For this we have to include the ReDoc middleware **UseReDocMiddleware** in the Configure method:
+```csharp
+...
+
+    // Register ReDoc middleware
+    app.UseReDocMiddleware(config);
+    
+...
+```
+If you run the application by default the swagger interface will appear navigate to {localhost}/api-docs to see the ReDoc interface as the figure below.
+
+![](res/redoc.jpg)
+
+You can find ReDoc interactive demo [here](http://redocly.github.io/redoc/) and a blog post [here](https://swagger.io/blog/api-development/redoc-openapi-powered-documentation/).
+
+To rapidly expose your applications API frameworks such as ReDoc and Swagger is definitely a quick and practical solution. Swagger and ReDoc both offer a free and paid version and should be explored to adjust the user’s needs.
+  
+I hope this demo will be a good start for your next OpenAPI project! Enjoy!
 
 ## Prerequisites
 - [Visual Studio](https://www.visualstudio.com/vs/community) 2019 16.9.4 or greater
@@ -729,6 +782,11 @@ I hope this demo will be a good start for your next OpenAPI project!
 - [Docker](https://www.docker.com/resources/what-container)  
 - [ASP.NET Core 5.0](https://docs.microsoft.com/en-us/aspnet/core/release-notes/aspnetcore-5.0?view=aspnetcore-5.0)
 - [Entity Framework Core 5.0](https://docs.microsoft.com/en-us/ef/core/)
+- [Swagger](https://swagger.io/)
+- [ReDoc](https://redoc.ly/)
+
+## Tools
+[Favicon Generator for ASP.NET Core](https://realfavicongenerator.net/favicon/aspnet_core)
 
 ## Licence
 Licenced under [MIT](http://opensource.org/licenses/mit-license.php).

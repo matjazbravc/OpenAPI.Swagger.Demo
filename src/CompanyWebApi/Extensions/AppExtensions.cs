@@ -47,6 +47,5 @@ namespace CompanyWebApi.Extensions
                 sa.SpecUrl = $"/{swaggerConfig.RoutePrefix}/V2/{swaggerConfig.DocsFile}";
             });
         }
-
     }
 }

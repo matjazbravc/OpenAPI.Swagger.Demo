@@ -113,13 +113,13 @@ namespace CompanyWebApi.Services.Swagger
                 // Add a logo to ReDoc page
                 Extensions = new Dictionary<string, IOpenApiExtension>
                 {
-                {
-                "x-logo", new OpenApiObject
-                {
-                    {"url", new OpenApiString("/wwwroot/swagger/company-logo-redoc.png")}
+                    {
+                        "x-logo", new OpenApiObject
+                        {
+                            {"url", new OpenApiString("/wwwroot/swagger/company-logo-redoc.png")}
+                        }
+                    }
                 }
-            }
-            }
             };
 
             if (description.IsDeprecated)
