@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
+using System.Threading;
+using System;
 
-namespace CompanyWebApi.Persistence.Repositories
+namespace CompanyWebApi.Persistence.Repositories.Base
 {
     public interface IBaseRepository<TEntity> where TEntity : class
     {

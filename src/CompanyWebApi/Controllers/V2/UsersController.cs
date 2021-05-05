@@ -1,7 +1,7 @@
 ﻿using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Controllers.Base;
+using CompanyWebApi.Persistence.Repositories;
 using CompanyWebApi.Services.Authorization;
-using CompanyWebApi.Services.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;

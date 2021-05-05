@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System;
 
-namespace CompanyWebApi.Persistence.Repositories
+namespace CompanyWebApi.Persistence.Repositories.Base
 {
 	/// <summary>
 	/// Generic asynchronous entity repository

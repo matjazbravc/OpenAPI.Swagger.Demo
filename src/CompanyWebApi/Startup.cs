@@ -6,26 +6,26 @@ using CompanyWebApi.Core.Auth;
 using CompanyWebApi.Extensions;
 using CompanyWebApi.Middleware;
 using CompanyWebApi.Persistence.DbContexts;
+using CompanyWebApi.Persistence.Repositories;
 using CompanyWebApi.Services.Authorization;
 using CompanyWebApi.Services.Helpers;
-using CompanyWebApi.Services.Repositories;
 using CompanyWebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System;
-using System.IO;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.FileProviders;
 
 namespace CompanyWebApi
 {

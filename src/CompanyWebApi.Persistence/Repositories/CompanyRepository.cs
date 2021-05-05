@@ -1,6 +1,6 @@
 ﻿using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Persistence.DbContexts;
-using CompanyWebApi.Persistence.Repositories;
+using CompanyWebApi.Persistence.Repositories.Base;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System;
 
-namespace CompanyWebApi.Services.Repositories
+namespace CompanyWebApi.Persistence.Repositories
 {
     public class CompanyRepository : BaseRepository<Company>, ICompanyRepository
     {
@@ -20,21 +20,13 @@ namespace CompanyWebApi.Services.Repositories
         // https://www.learnentityframeworkcore.com/dbset/querying-data
         public override async Task<Company> GetSingleAsync(Expression<Func<Company, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Company company = null;
-            try
-            {
-                company = await DatabaseSet
-                    .Include(cmp => cmp.Employees).ThenInclude(emp => emp.EmployeeAddress)
-                    .Include(cmp => cmp.Employees).ThenInclude(emp => emp.Department)
-                    .Include(cmp => cmp.Employees).ThenInclude(emp => emp.User)
-                    .AsNoTracking()
-                    .SingleOrDefaultAsync(predicate, cancellationToken).ConfigureAwait(false);
-                return company;
-            }
-            catch (Exception)
-            {
-                return company;
-            }
+            var result = await DatabaseSet
+                .Include(cmp => cmp.Employees).ThenInclude(emp => emp.EmployeeAddress)
+                .Include(cmp => cmp.Employees).ThenInclude(emp => emp.Department)
+                .Include(cmp => cmp.Employees).ThenInclude(emp => emp.User)
+                .AsNoTracking()
+                .SingleOrDefaultAsync(predicate, cancellationToken).ConfigureAwait(false);
+            return result;
         }
 
         public override async Task<IList<Company>> GetAllAsync(CancellationToken cancellationToken = default(CancellationToken))

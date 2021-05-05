@@ -1,7 +1,7 @@
 using CompanyWebApi.Configurations;
 using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Core.Auth;
-using CompanyWebApi.Services.Repositories;
+using CompanyWebApi.Persistence.Repositories;
 using Microsoft.Extensions.Options;
 using System.Threading.Tasks;
 

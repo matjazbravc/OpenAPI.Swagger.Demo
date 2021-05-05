@@ -1,11 +1,11 @@
 ﻿using CompanyWebApi.Contracts.Entities;
-using CompanyWebApi.Services.Repositories;
+using CompanyWebApi.Persistence.Repositories;
 using CompanyWebApi.Tests.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
-using System.Linq;
 
 namespace CompanyWebApi.Tests.UnitTests
 {

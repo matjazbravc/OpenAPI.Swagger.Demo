@@ -1,6 +1,6 @@
 ﻿using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Persistence.DbContexts;
-using CompanyWebApi.Persistence.Repositories;
+using CompanyWebApi.Persistence.Repositories.Base;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System;
 
-namespace CompanyWebApi.Services.Repositories
+namespace CompanyWebApi.Persistence.Repositories
 {
     public class DepartmentRepository : BaseRepository<Department>, IDepartmentRepository
     {

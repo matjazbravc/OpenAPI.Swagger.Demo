@@ -1,7 +1,7 @@
 ﻿using CompanyWebApi.Contracts.Entities;
-using CompanyWebApi.Persistence.Repositories;
+using CompanyWebApi.Persistence.Repositories.Base;
 
-namespace CompanyWebApi.Services.Repositories
+namespace CompanyWebApi.Persistence.Repositories
 {
 	public interface IDepartmentRepository : IBaseRepository<Department>
     { 
