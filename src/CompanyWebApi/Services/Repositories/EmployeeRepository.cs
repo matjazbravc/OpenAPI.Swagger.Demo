@@ -17,7 +17,7 @@ namespace CompanyWebApi.Services.Repositories
 		{
 		}
 
-		public override async Task<Employee> GetSingleAsync(Expression<Func<Employee, bool>> predicate, bool disableTracking = true, CancellationToken cancellationToken = default(CancellationToken))
+		public override async Task<Employee> GetSingleAsync(Expression<Func<Employee, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			Employee employee = null;
 			try
@@ -38,13 +38,9 @@ namespace CompanyWebApi.Services.Repositories
 			}
 		}
 
-		public override async Task<IList<Employee>> GetAllAsync(bool disableTracking = true, CancellationToken cancellationToken = default(CancellationToken))
+		public override async Task<IList<Employee>> GetAllAsync(CancellationToken cancellationToken = default(CancellationToken))
 		{
 			IQueryable<Employee> query = DatabaseSet;
-			if (disableTracking)
-			{
-				query = query.AsNoTracking();
-			}
 			var result = await query
                 .Include(emp => emp.Company)
                 .Include(emp => emp.Department)

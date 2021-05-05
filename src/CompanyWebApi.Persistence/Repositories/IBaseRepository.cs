@@ -12,16 +12,16 @@ namespace CompanyWebApi.Persistence.Repositories
 		
 	    Task<int> AddAsync(IList<TEntity> entities, CancellationToken cancellationToken = default);
 
-		Task<int> CountAsync(bool disableTracking = true, CancellationToken cancellationToken = default);
+		Task<int> CountAsync(CancellationToken cancellationToken = default);
 
 		Task<int> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
 
-	    Task<IList<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate, bool disableTracking = true, CancellationToken cancellationToken = default);
+	    Task<IList<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
 
-        Task<IList<TEntity>> GetAllAsync(bool disableTracking = true, CancellationToken cancellationToken = default);
+        Task<IList<TEntity>> GetAllAsync(CancellationToken cancellationToken = default);
 
-        Task<TEntity> GetSingleAsync(Expression<Func<TEntity, bool>> predicate, bool disableTracking = true, CancellationToken cancellationToken = default);
+        Task<TEntity> GetSingleAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
 
-        Task<TEntity> UpdateAsync(TEntity entity, bool disableTracking = true, CancellationToken cancellationToken = default);
+        Task<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default);
     }
 }

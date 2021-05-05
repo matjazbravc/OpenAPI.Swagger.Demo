@@ -18,7 +18,7 @@ namespace CompanyWebApi.Services.Repositories
         }
 
         // https://www.learnentityframeworkcore.com/dbset/querying-data
-        public override async Task<Company> GetSingleAsync(Expression<Func<Company, bool>> predicate, bool disableTracking = true, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<Company> GetSingleAsync(Expression<Func<Company, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
             Company company = null;
             try
@@ -37,13 +37,9 @@ namespace CompanyWebApi.Services.Repositories
             }
         }
 
-        public override async Task<IList<Company>> GetAllAsync(bool disableTracking = true, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IList<Company>> GetAllAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             IQueryable<Company> query = DatabaseSet;
-            if (disableTracking)
-            {
-                query = query.AsNoTracking();
-            }
             var result = await query
                 .Include(cmp => cmp.Employees).ThenInclude(emp => emp.EmployeeAddress)
                 .Include(cmp => cmp.Employees).ThenInclude(emp => emp.Department)
