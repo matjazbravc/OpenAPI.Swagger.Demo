@@ -62,7 +62,7 @@ namespace CompanyWebApi.Tests.UnitTests
                 Created = DateTime.UtcNow,
                 Modified = DateTime.UtcNow
             };            
-            var repoEmployee = await _employeeRepository.AddEmployeeAsync(employee, true).ConfigureAwait(false);
+            var repoEmployee = await _employeeRepository.AddEmployeeAsync(employee).ConfigureAwait(false);
             _employeeRepository.Remove(repoEmployee);
             await _employeeRepository.SaveAsync().ConfigureAwait(false);
             var deletedEmployee = await _employeeRepository.GetEmployeeAsync(employee.EmployeeId).ConfigureAwait(false);

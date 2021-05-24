@@ -68,7 +68,8 @@ namespace CompanyWebApi.Persistence.Repositories
 
         public async Task<IList<User>> GetUsersByUsernameAsync(string username, bool tracking = false)
         {
-            var result = await GetAsync<User>(u => u.Username.Equals(username),
+            var result = await GetAsync<User>(
+                usr => usr.Username.Equals(username),
                 include: source => source
                     .Include(user => user.Employee),
                 orderBy: o => o

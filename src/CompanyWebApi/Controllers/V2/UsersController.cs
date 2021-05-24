@@ -132,10 +132,11 @@ namespace CompanyWebApi.Controllers.V2
 
             var repoUser = await _repositoryFactory.UserRepository.AddUserAsync(newUser).ConfigureAwait(false);
             var result = _userToDtoConverter.Convert(repoUser);
-            return new ObjectResult(result)
+            var createdResult = new ObjectResult(result)
             {
                 StatusCode = StatusCodes.Status201Created
             };
+            return createdResult;
         }
 
         /// <summary>

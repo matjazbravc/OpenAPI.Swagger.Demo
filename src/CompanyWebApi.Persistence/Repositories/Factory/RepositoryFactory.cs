@@ -1,49 +1,34 @@
 ﻿using CompanyWebApi.Persistence.DbContexts;
-using System.Threading;
 using System.Threading.Tasks;
+using System.Threading;
+using System;
 
 namespace CompanyWebApi.Persistence.Repositories.Factory
 {
     public class RepositoryFactory : IRepositoryFactory 
     { 
         private readonly ApplicationDbContext _dbContext;
-        private ICompanyRepository _companyRepository;
-        private IDepartmentRepository _departmentRepository;
-        private IEmployeeRepository _employeeRepository;
-        private IUserRepository _userRepository;
 
-        public RepositoryFactory(ApplicationDbContext repositoryContext,
+        public RepositoryFactory(ApplicationDbContext dbContext,
             ICompanyRepository companyRepository,
             IDepartmentRepository departmentRepository,
             IEmployeeRepository employeeRepository,
             IUserRepository userRepository)
         {
-            _dbContext = repositoryContext;
-            _companyRepository = companyRepository;
-            _departmentRepository = departmentRepository;
-            _employeeRepository = employeeRepository;
-            _userRepository = userRepository;
+            _dbContext = dbContext ?? throw new ArgumentException("DbContext is null", nameof(dbContext));
+            CompanyRepository = companyRepository ?? throw new ArgumentException("Repository is null", nameof(dbContext));
+            DepartmentRepository = departmentRepository ?? throw new ArgumentException("Repository is null", nameof(departmentRepository));
+            EmployeeRepository = employeeRepository ?? throw new ArgumentException("Repository is null", nameof(employeeRepository));
+            UserRepository = userRepository ?? throw new ArgumentException("Repository is null", nameof(userRepository));
         }
 
-        public ICompanyRepository CompanyRepository
-        { 
-            get { return _companyRepository ??= new CompanyRepository(_dbContext); } 
-        }
+        public ICompanyRepository CompanyRepository { get; }
 
-        public IDepartmentRepository DepartmentRepository
-        {
-            get { return _departmentRepository ??= new DepartmentRepository(_dbContext); }
-        }
+        public IDepartmentRepository DepartmentRepository { get; }
 
-        public IEmployeeRepository EmployeeRepository
-        {
-            get { return _employeeRepository ??= new EmployeeRepository(_dbContext); }
-        }
+        public IEmployeeRepository EmployeeRepository { get; }
 
-        public IUserRepository UserRepository
-        {
-            get { return _userRepository ??= new UserRepository(_dbContext); }
-        }
+        public IUserRepository UserRepository { get; }
 
         public async Task SaveAsync(CancellationToken cancellationToken = default)
         {

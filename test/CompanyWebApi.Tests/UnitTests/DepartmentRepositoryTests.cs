@@ -75,7 +75,7 @@ namespace CompanyWebApi.Tests.UnitTests
                 DepartmentId = 9999, 
                 Name = "TEST DEPARTMENT"
             };
-            await _departmentRepository.AddDepartmentAsync(department, true).ConfigureAwait(false);
+            await _departmentRepository.AddDepartmentAsync(department).ConfigureAwait(false);
             _departmentRepository.Remove(department);
             await _departmentRepository.SaveAsync().ConfigureAwait(false);
             var repoDepartment = await _departmentRepository.GetDepartmentAsync(department.DepartmentId).ConfigureAwait(false);

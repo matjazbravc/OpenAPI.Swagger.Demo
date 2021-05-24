@@ -92,10 +92,11 @@ namespace CompanyWebApi.Controllers.V2
 
             var repoEmployee = await _repositoryFactory.EmployeeRepository.AddEmployeeAsync(newEmployee).ConfigureAwait(false);
             var result = _employeeToDtoConverter.Convert(repoEmployee);
-            return new ObjectResult(result)
+            var createdResult = new ObjectResult(result)
             {
                 StatusCode = StatusCodes.Status201Created
             };
+            return createdResult;
         }
 
         /// <summary>

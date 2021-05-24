@@ -20,7 +20,8 @@ namespace CompanyWebApi.Services.Filters
             }
 
             // Check whether a controller and action does contain AllowAnonymousAttribute
-            var hasAllowAnonymous = filterContext.ActionDescriptor.EndpointMetadata.Any(em => em.GetType() == typeof(AllowAnonymousAttribute));
+            var hasAllowAnonymous = filterContext.ActionDescriptor.EndpointMetadata.Any(em => em
+                .GetType() == typeof(AllowAnonymousAttribute));
             if (hasAllowAnonymous)
             {
                 return Task.CompletedTask;
@@ -34,7 +35,7 @@ namespace CompanyWebApi.Services.Filters
                 return Task.CompletedTask;
             }
 
-            filterContext.Result = new UnauthorizedObjectResult("*** Please authorize user! ***");
+            filterContext.Result = new UnauthorizedObjectResult("Please authorize API with token!");
             return Task.CompletedTask;
         }
     }

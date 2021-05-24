@@ -17,7 +17,7 @@ namespace CompanyWebApi.Persistence.Repositories
         {
         }
 
-        public async Task<Department> AddDepartmentAsync(Department department, bool tracking = false)
+        public async Task<Department> AddDepartmentAsync(Department department, bool tracking = true)
         {
             await AddAsync(department).ConfigureAwait(false);
             await SaveAsync().ConfigureAwait(false);

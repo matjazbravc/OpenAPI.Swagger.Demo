@@ -19,7 +19,7 @@ namespace CompanyWebApi.Persistence.Repositories
         {
         }
 
-        public async Task<Employee> AddEmployeeAsync(Employee employee, bool tracking = false)
+        public async Task<Employee> AddEmployeeAsync(Employee employee, bool tracking = true)
         {
             await AddAsync(employee).ConfigureAwait(false);
             await SaveAsync().ConfigureAwait(false);
@@ -52,21 +52,7 @@ namespace CompanyWebApi.Persistence.Repositories
             return result;
         }
 
-        public async Task<IList<Employee>> GetEmployeesAsync(bool tracking = false)
-        {
-            var result = await GetAsync<Employee>(
-                include: source => source
-                      .Include(emp => emp.Company)
-                      .Include(emp => emp.Department)
-                      .Include(emp => emp.EmployeeAddress)
-                      .Include(emp => emp.User),
-                orderBy: emp => emp
-                    .OrderBy(o => o.EmployeeId),
-                tracking: tracking).ConfigureAwait(false);
-            return result;
-        }
-
-        public async Task<IList<Employee>> GetEmployeesAsync(Expression<Func<Employee, bool>> predicate, bool tracking = false)
+        public async Task<IList<Employee>> GetEmployeesAsync(Expression<Func<Employee, bool>> predicate = null, bool tracking = false)
         {
             var result = await GetAsync<Employee>(predicate,
                 include: source => source
@@ -83,7 +69,7 @@ namespace CompanyWebApi.Persistence.Repositories
 
         public async Task<IList<Employee>> SearchEmployeesAsync(EmployeeSearchDto searchCriteria, bool tracking = false)
         {
-            var employees = await GetEmployeesAsync(tracking).ConfigureAwait(false);
+            var employees = await GetEmployeesAsync(null, tracking).ConfigureAwait(false);
             employees = employees.If(!string.IsNullOrEmpty(searchCriteria.FirstName), q => q.Where(x =>
                     x.FirstName.Contains(searchCriteria.FirstName, StringComparison.InvariantCultureIgnoreCase)))
                 .If(!string.IsNullOrEmpty(searchCriteria.LastName), q => q.Where(x =>

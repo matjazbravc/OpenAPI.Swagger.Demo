@@ -9,7 +9,7 @@ namespace CompanyWebApi.Persistence.Repositories
 {
 	public interface IDepartmentRepository : IBaseRepository<Department>
     {
-        Task<Department> AddDepartmentAsync(Department department, bool tracking = false);
+        Task<Department> AddDepartmentAsync(Department department, bool tracking = true);
 
         Task<IList<Department>> GetDepartmentsAsync(bool tracking = false);
 

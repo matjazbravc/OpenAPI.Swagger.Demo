@@ -1,9 +1,9 @@
-using System;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System;
 
 namespace CompanyWebApi.Tests.Services
 {

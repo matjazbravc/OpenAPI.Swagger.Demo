@@ -48,7 +48,7 @@ namespace CompanyWebApi.Tests.UnitTests
             {
                 CompanyId = 9999, Name = "Delete Company", Created = DateTime.UtcNow, Modified = DateTime.UtcNow
             };
-            await _companyRepository.AddCompanyAsync(company, true).ConfigureAwait(false);
+            await _companyRepository.AddCompanyAsync(company).ConfigureAwait(false);
             _companyRepository.Remove(company);
             await _companyRepository.SaveAsync().ConfigureAwait(false);
             var repoCompany = await _companyRepository.GetCompanyAsync(company.CompanyId).ConfigureAwait(false);

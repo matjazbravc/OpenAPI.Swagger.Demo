@@ -69,10 +69,11 @@ namespace CompanyWebApi.Controllers.V2
             };
             var repoCompany = await _repositoryFactory.CompanyRepository.AddCompanyAsync(newCompany).ConfigureAwait(false);
             var result = _companyToDtoConverter.Convert(repoCompany);
-            return new ObjectResult(result)
+            var createdResult = new ObjectResult(result)
             {
                 StatusCode = StatusCodes.Status201Created
             };
+            return createdResult;
         }
 
         /// <summary>

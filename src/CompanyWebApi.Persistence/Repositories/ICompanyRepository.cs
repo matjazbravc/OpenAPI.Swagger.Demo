@@ -9,7 +9,7 @@ namespace CompanyWebApi.Persistence.Repositories
 {
 	public interface ICompanyRepository : IBaseRepository<Company>
     {
-        Task<Company> AddCompanyAsync(Company company, bool tracking = false);
+        Task<Company> AddCompanyAsync(Company company, bool tracking = true);
 
         Task<IList<Company>> GetCompaniesAsync(bool tracking = false);
 

@@ -17,7 +17,7 @@ namespace CompanyWebApi.Persistence.Repositories
         {
         }
 
-        public async Task<Company> AddCompanyAsync(Company company, bool tracking = false)
+        public async Task<Company> AddCompanyAsync(Company company, bool tracking = true)
         {
             await AddAsync(company).ConfigureAwait(false);
             await SaveAsync().ConfigureAwait(false);

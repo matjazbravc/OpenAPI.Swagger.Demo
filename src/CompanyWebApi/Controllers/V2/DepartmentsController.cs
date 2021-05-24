@@ -79,10 +79,11 @@ namespace CompanyWebApi.Controllers.V2
 
             var repoDepartment = await _repositoryFactory.DepartmentRepository.AddDepartmentAsync(newDepartment).ConfigureAwait(false);
             var result = _departmentToDtoConverter.Convert(repoDepartment);
-            return new ObjectResult(result)
+            var createdResult = new ObjectResult(result)
             {
                 StatusCode = StatusCodes.Status201Created
             };
+            return createdResult;
         }
 
         /// <summary>
