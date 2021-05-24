@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics.CodeAnalysis;
-using CompanyWebApi.Contracts.Entities.Base;
+﻿using CompanyWebApi.Contracts.Entities.Base;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using System;
 
 namespace CompanyWebApi.Contracts.Entities
 {
 	// https://www.tektutorialshub.com/entity-framework-core-data-seeding/
 	[Serializable]
-	[ExcludeFromCodeCoverage]
 	[JsonObject(IsReference = false)]
 	public class Department : BaseAuditEntity
 	{
@@ -18,11 +16,17 @@ namespace CompanyWebApi.Contracts.Entities
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int DepartmentId { get; set; }
 
+        [Required(ErrorMessage = "Department name is required")]
+		[StringLength(150, ErrorMessage = "Department name cannot be longer than 150 characters.")]
 		public string Name { get; set; }
-		
-        // Navigation property
-		public ICollection<Employee> Employees { get; set; } = new List<Employee>();
 
-        public override string ToString() => $"{DepartmentId}, {Name}";
+        [ForeignKey(nameof(Company))]
+		public int CompanyId { get; set; }
+
+		// Inverse navigation property
+		public Company Company { get; set; }
+
+        // Collection navigation property
+		public IList<Employee> Employees { get; set; } = new List<Employee>();
 	}
 }

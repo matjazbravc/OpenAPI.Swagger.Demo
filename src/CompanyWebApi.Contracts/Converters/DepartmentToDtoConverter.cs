@@ -23,14 +23,16 @@ namespace CompanyWebApi.Contracts.Converters
 			_logger.LogDebug("Convert");
 			var departmentDto = new DepartmentDto
 			{
+				CompanyId = department.CompanyId,
+				CompanyName = department.Company.Name,
 				DepartmentId = department.DepartmentId,
 				Name = department.Name
 			};
 			foreach (var employee in department.Employees)
             {
-                var addressStr = employee.EmployeeAddress == null ? "N/A" : employee.EmployeeAddress.Address;
-                var departmentStr = employee.Department == null ? "N/A" : employee.Department.Name;
-                var username = employee.User == null ? "N/A" : employee.User.Username;
+                var addressStr = employee.EmployeeAddress == null ? string.Empty : employee.EmployeeAddress.Address;
+                var departmentStr = employee.Department == null ? string.Empty : employee.Department.Name;
+                var username = employee.User == null ? string.Empty : employee.User.Username;
                 var employeeDto = $"{employee.FirstName} {employee.LastName}, Address: {addressStr}, Department: {departmentStr}, Username: {username}";
                 departmentDto.Employees.Add(employeeDto);
 			}
@@ -40,11 +42,7 @@ namespace CompanyWebApi.Contracts.Converters
 		public IList<DepartmentDto> Convert(IList<Department> companies)
 		{
 			_logger.LogDebug("ConvertList");
-			return companies.Select(cmp =>
-			{
-				var departmentDto = Convert(cmp);
-				return departmentDto;
-			}).ToList();
+			return companies.Select(Convert).ToList();
 		}
 	}
 }

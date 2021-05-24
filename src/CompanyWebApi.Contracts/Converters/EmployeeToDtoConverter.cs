@@ -26,12 +26,14 @@ namespace CompanyWebApi.Contracts.Converters
 				EmployeeId = employee.EmployeeId,
 				FirstName = employee.FirstName,
 				LastName = employee.LastName,
-                Company = employee.Company == null ? "N/A" : employee.Company.Name,
-                Address = employee.EmployeeAddress == null ? "N/A" : employee.EmployeeAddress.Address,
+                Address = employee.EmployeeAddress == null ? string.Empty : employee.EmployeeAddress.Address,
                 Age = employee.Age,
                 BirthDate = employee.BirthDate,
-                Department = employee.Department == null ? "N/A" : employee.Department.Name,
-                Username = employee.User == null ? "N/A" : employee.User.Username
+                Username = employee.User == null ? string.Empty : employee.User.Username,
+                CompanyId = employee.Company?.CompanyId ?? 0,
+                Company = employee.Company == null ? string.Empty : employee.Company.Name,
+                DepartmentId = employee.Department?.DepartmentId ?? 0,
+                Department = employee.Department == null ? string.Empty : employee.Department.Name
 			};
 			return employeeDto;
 		}
@@ -39,11 +41,7 @@ namespace CompanyWebApi.Contracts.Converters
 		public IList<EmployeeDto> Convert(IList<Employee> employees)
 		{
 			_logger.LogDebug("ConvertList");
-			return employees.Select(cmp =>
-			{
-				var employeeDto = Convert(cmp);
-				return employeeDto;
-			}).ToList();
+			return employees.Select(Convert).ToList();
 		}
 	}
 }

@@ -11,15 +11,16 @@ namespace CompanyWebApi.Persistence.Configurations
 			// Table
 			entity.ToTable("EmployeeAddresses");
 
-			// Keys, Properties
-			entity.HasKey(e => e.EmployeeId);
-			entity.Property(e => e.Address)
-				.IsRequired()
-				.HasMaxLength(255);
+			// Keys
+			entity.HasKey(empa => empa.EmployeeId);
+
+			// Properties
+			entity.Property(empa => empa.Address)
+				.IsRequired();
 
 			// Relationships
-			entity.HasOne(a => a.Employee)
-				.WithOne(b => b.EmployeeAddress)
+			entity.HasOne(empa => empa.Employee)
+				.WithOne(emp => emp.EmployeeAddress)
                 .OnDelete(DeleteBehavior.ClientSetNull)
 				.HasForeignKey<EmployeeAddress>("EmployeeId")
 				.OnDelete(DeleteBehavior.Cascade);

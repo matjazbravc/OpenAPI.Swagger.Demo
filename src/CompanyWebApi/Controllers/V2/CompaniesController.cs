@@ -2,97 +2,157 @@
 using CompanyWebApi.Contracts.Dto;
 using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Controllers.Base;
-using CompanyWebApi.Persistence.Repositories;
-using Microsoft.AspNetCore.Authorization;
+using CompanyWebApi.Persistence.Repositories.Factory;
+using CompanyWebApi.Services.Filters;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace CompanyWebApi.Controllers.V2
 {
-    [Authorize]
+    [ApiAuthorization]
     [ApiController]
     [ApiVersion("2.0")]
     [Produces("application/json")]
     [EnableCors("EnableCORS")]
+    [ServiceFilter(typeof(ValidModelStateAsyncActionFilter))]
     [Route("api/v{version:apiVersion}/[controller]")]
     public class CompaniesController : BaseController<CompaniesController>
     {
-        private readonly ICompanyRepository _companyRepository;
+        private readonly IRepositoryFactory _repositoryFactory;
         private readonly IConverter<Company, CompanyDto> _companyToDtoConverter;
         private readonly IConverter<IList<Company>, IList<CompanyDto>> _companyToDtoListConverter;
 
-        public CompaniesController(ICompanyRepository companyRepository,
+        public CompaniesController(IRepositoryFactory repositoryFactory,
             IConverter<Company, CompanyDto> companyToDtoConverter,
             IConverter<IList<Company>, IList<CompanyDto>> companyToDtoListConverter)
         {
-            _companyRepository = companyRepository;
+            _repositoryFactory = repositoryFactory;
             _companyToDtoConverter = companyToDtoConverter;
             _companyToDtoListConverter = companyToDtoListConverter;
         }
 
         /// <summary>
-        /// Create Company
+        /// Add a new company
         /// </summary>
-        /// <remarks>This API will create new Company</remarks>
-        /// POST /api/companies/create/{company}
-        /// <param name="company">Company model</param>
+        /// <remarks>
+        /// Sample request body:
+        ///
+        ///     {
+        ///        "name": "Test Company"
+        ///     }
+        /// 
+        /// Sample response body:
+        /// 
+        ///     {
+        ///         "companyId": 12,
+        ///         "name": "Test Company",
+        ///         "employees": []
+        ///     }
+        /// </remarks>
+        /// <param name="company">CompanyCreateDto model</param>
         /// <param name="version">API version</param>
-        [ProducesResponseType(201, Type = typeof(Company))]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
+        [SwaggerResponse(StatusCodes.Status201Created, Type = typeof(CompanyDto), Description = "Returns a new company")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized user")]
         [HttpPost("create", Name = "CreateCompanyV2")]
-        public async Task<IActionResult> CreateAsync([FromBody] Company company, ApiVersion version)
+        public async Task<IActionResult> CreateAsync([FromBody] CompanyCreateDto company, ApiVersion version)
         {
             Logger.LogDebug(nameof(CreateAsync));
-            if (company == null)
+            var newCompany = new Company
             {
-                return BadRequest(new { message = "The company is null" });
-            }
-            await _companyRepository.AddAsync(company).ConfigureAwait(false);
-            return CreatedAtRoute("GetCompanyByIdV2", new { id = company.CompanyId, version = version.ToString() }, company);
+                Name = company.Name
+            };
+            var repoCompany = await _repositoryFactory.CompanyRepository.AddCompanyAsync(newCompany).ConfigureAwait(false);
+            var result = _companyToDtoConverter.Convert(repoCompany);
+            return new ObjectResult(result)
+            {
+                StatusCode = StatusCodes.Status201Created
+            };
         }
 
         /// <summary>
-        /// Delete Company
+        /// Deletes a company with Id
         /// </summary>
-        /// <remarks>This API will delete Company with Id</remarks>
-        /// DELETE /api/companies/{id}
-        /// <param name="id"></param>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     DELETE /api/v2/companies/1
+        ///
+        /// Sample response body:
+        ///     
+        ///    Code 204 Success
+        /// 
+        /// </remarks>
+        /// <param name="id" example="1">Company Id</param>
         /// <param name="version">API version</param>
-        /// <returns></returns>
-        [ProducesResponseType(204)]
-        [ProducesResponseType(404)]
+        [SwaggerResponse(StatusCodes.Status200OK, Description = "Company was successfuly deleted")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "No company was found")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized user")]
         [HttpDelete("{id:int}", Name = "DeleteCompanyByIdV2")]
         public async Task<IActionResult> DeleteAsync(int id, ApiVersion version)
         {
             Logger.LogDebug(nameof(DeleteAsync));
-            var company = await _companyRepository.GetSingleAsync(cmp => cmp.CompanyId == id).ConfigureAwait(false);
+            var company = await _repositoryFactory.CompanyRepository.GetCompanyAsync(id).ConfigureAwait(false);
             if (company == null)
             {
                 return NotFound(new { message = "The company was not found" });
             }
-            await _companyRepository.DeleteAsync(company).ConfigureAwait(false);
-            return NoContent();
+            _repositoryFactory.CompanyRepository.Remove(company);
+            await _repositoryFactory.SaveAsync().ConfigureAwait(false);
+            return Ok();
         }
 
         /// <summary>
-        /// Get all Companies
+        /// Gets all companies
         /// </summary>
-        /// <remarks>This API return list of all Companies</remarks>
-        /// GET api/companies/getall
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /api/v2/companies/getall
+        ///
+        /// Sample response body:
+        /// 
+        ///     [
+        ///       {
+        ///         "companyId": 1,
+        ///         "name": "Company One",
+        ///         "employees": [
+        ///           "John Whyne, Address: Bangalore, India, Department: HR, Username: johnw",
+        ///           "Mathias Gernold, Address: Newyork, USA, Department: Admin, Username: mathiasg",
+        ///           "Julia Reynolds, Address: California, USA, Department: Development, Username: juliar"
+        ///         ]
+        ///       },
+        ///       {
+        ///         "companyId": 2,
+        ///         "name": "Company Two",
+        ///         "employees": [
+        ///           "Alois Mock, Address: NewDelhi, India, Department: HR, Username: aloism"
+        ///         ]
+        ///       },
+        ///       {
+        ///         "companyId": 3,
+        ///         "name": "Company Three",
+        ///         "employees": [
+        ///           "Gertraud Bochold, Address: Kentuki, USA, Department: Admin, Username: gertraudb",
+        ///           "Alan Ford, Address: Milano, Italy, Department: Admin, Username: alanf"
+        ///         ]
+        ///       }
+        ///     ]
+        /// </remarks>
         /// <param name="version">API version</param>
-        /// <returns>List of Companies</returns>
-        [ProducesResponseType(200, Type = typeof(IEnumerable<CompanyDto>))]
-        [ProducesResponseType(404)]
-        [HttpGet("getAll", Name = "GetAllCompaniesV2")]
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(IEnumerable<CompanyDto>), Description = "Return list of companies")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "The companies list is empty")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized user")]
+        [HttpGet("getall", Name = "GetAllCompaniesV2")]
         public async Task<ActionResult<IEnumerable<CompanyDto>>> GetAllAsync(ApiVersion version)
         {
             Logger.LogDebug(nameof(GetAllAsync));
-            var companies = await _companyRepository.GetAllAsync().ConfigureAwait(false);
+            var companies = await _repositoryFactory.CompanyRepository.GetCompaniesAsync().ConfigureAwait(false);
             if (!companies.Any())
             {
                 return NotFound(new { message = "The companies list is empty" });
@@ -100,21 +160,37 @@ namespace CompanyWebApi.Controllers.V2
             var companiesDto = _companyToDtoListConverter.Convert(companies);
             return Ok(companiesDto);
         }
+
         /// <summary>
-        /// Get Company
+        /// Get a company with Id
         /// </summary>
-        /// <remarks>This API return Company with Id</remarks>
-        /// GET /api/companies/{id}
-        /// <param name="id">Company Id</param>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /api/v2/companies/1
+        ///
+        /// Sample response body:
+        /// 
+        ///     {
+        ///       "companyId": 1,
+        ///       "name": "Company One",
+        ///       "employees": [
+        ///         "John Whyne, Address: Bangalore, India, Department: HR, Username: johnw",
+        ///         "Mathias Gernold, Address: Newyork, USA, Department: Admin, Username: mathiasg",
+        ///         "Julia Reynolds, Address: California, USA, Department: Development, Username: juliar"
+        ///       ]
+        ///     }
+        /// </remarks>
+        /// <param name="id" example="1">Company Id</param>
         /// <param name="version">API version</param>
-        /// <returns>Return Company</returns>
-        [ProducesResponseType(200, Type = typeof(CompanyDto))]
-        [ProducesResponseType(404)]
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(CompanyDto), Description = "Return company")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "The company was not found")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized user")]
         [HttpGet("{id:int}", Name = "GetCompanyByIdV2")]
-        public async Task<IActionResult> GetByIdAsync(int id, ApiVersion version)
+        public async Task<IActionResult> GetCompanyById(int id, ApiVersion version)
         {
-            Logger.LogDebug(nameof(GetByIdAsync));
-            var company = await _companyRepository.GetSingleAsync(comp => comp.CompanyId == id).ConfigureAwait(false);
+            Logger.LogDebug(nameof(GetCompanyById));
+            var company = await _repositoryFactory.CompanyRepository.GetCompanyAsync(id).ConfigureAwait(false);
             if (company == null)
             {
                 return NotFound(new { message = "The company was not found" });
@@ -124,29 +200,47 @@ namespace CompanyWebApi.Controllers.V2
         }
 
         /// <summary>
-        /// Update Company
+        /// Updates a company
         /// </summary>
-        /// <remarks>This API updates a company</remarks>
-        /// POST /api/companies/update/{company}
-        /// <param name="company">Company model</param>
+        /// <remarks>
+        /// Sample request body:
+        ///
+        ///     {
+        ///       "companyId": 1,
+        ///       "name": "New Company One"
+        ///     }
+        /// 
+        /// Sample response body:
+        /// 
+        ///     {
+        ///       "companyId": 1,
+        ///       "name": "New Company One",
+        ///       "employees": [
+        ///         "John Whyne, Address: Bangalore, India, Department: HR, Username: johnw",
+        ///         "Mathias Gernold, Address: Newyork, USA, Department: Admin, Username: mathiasg",
+        ///         "Julia Reynolds, Address: California, USA, Department: Development, Username: juliar"
+        ///       ]
+        ///     }
+        /// </remarks>
+        /// <param name="company">CompanyUpdateDto model</param>
         /// <param name="version">API version</param>
-        /// <returns>Returns updated Company</returns>
-        [ProducesResponseType(201, Type = typeof(CompanyDto))]
-        [ProducesResponseType(400)]
-        [HttpPost("update", Name = "UpdateCompanyV2")]
-        public async Task<IActionResult> UpdateAsync([FromBody] Company company, ApiVersion version)
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(CompanyDto), Description = "Return updated company")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "The company was not found")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized user")]
+        [HttpPut("update", Name = "UpdateCompanyV2")]
+        public async Task<IActionResult> UpdateAsync([FromBody] CompanyUpdateDto company, ApiVersion version)
         {
             Logger.LogDebug(nameof(UpdateAsync));
-            if (company == null)
+            var repoCompany = await _repositoryFactory.CompanyRepository.GetCompanyAsync(company.CompanyId).ConfigureAwait(false);
+            if (repoCompany == null)
             {
-                return BadRequest(new { message = "The retrieved company is null" });
+                return NotFound(new { message = "The company was not found" });
             }
-            var updatedCompany = await _companyRepository.UpdateAsync(company).ConfigureAwait(false);
-            if (updatedCompany == null)
-            {
-                return BadRequest(new { message = "The updated company is null" });
-            }
-            return CreatedAtRoute("GetCompanyByIdV2", new { id = company.CompanyId, version = version.ToString() }, company);
+            repoCompany.Name = company.Name;
+            await _repositoryFactory.CompanyRepository.UpdateAsync(repoCompany).ConfigureAwait(false);
+            await _repositoryFactory.SaveAsync().ConfigureAwait(false);
+            var result = _companyToDtoConverter.Convert(repoCompany);
+            return Ok(result);
         }
     }
 }

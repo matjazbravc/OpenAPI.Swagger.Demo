@@ -44,9 +44,19 @@ namespace CompanyWebApi.Services
 			if (!context.Departments.Any())
 			{
 				context.Departments.AddRange(
-					new Department { DepartmentId = 1, Name = "HR" },
-					new Department { DepartmentId = 2, Name = "Admin" },
-					new Department { DepartmentId = 3, Name = "Development" }
+					new Department { CompanyId = 1, DepartmentId = 1, Name = "Logistics" },
+					new Department { CompanyId = 1, DepartmentId = 2, Name = "Administration" },
+					new Department { CompanyId = 1, DepartmentId = 3, Name = "Development" },
+
+                    new Department { CompanyId = 2, DepartmentId = 4, Name = "Sales" },
+                    new Department { CompanyId = 2, DepartmentId = 5, Name = "Marketing" },
+                    new Department { CompanyId = 3, DepartmentId = 6, Name = "Customer support" },
+
+                    new Department { CompanyId = 3, DepartmentId = 7, Name = "Research and Development" },
+                    new Department { CompanyId = 3, DepartmentId = 8, Name = "Purchasing" },
+                    new Department { CompanyId = 3, DepartmentId = 9, Name = "Human Resource Management" },
+                    new Department { CompanyId = 3, DepartmentId = 10, Name = "Accounting and Finance" },
+                    new Department { CompanyId = 3, DepartmentId = 11, Name = "Production" }
 				);
 			}
 
@@ -55,69 +65,82 @@ namespace CompanyWebApi.Services
 				context.Employees.AddRange(
 					new Employee
 					{
+						CompanyId = 1,
+                        DepartmentId = 1,
 						EmployeeId = 1,
 						FirstName = "John",
 						LastName = "Whyne",
 						BirthDate = new DateTime(1991, 8, 7),
-						CompanyId = 1,
-						DepartmentId = 1,
 						Created = DateTime.UtcNow,
 						Modified = DateTime.UtcNow
 					},
 					new Employee
 					{
+                        CompanyId = 2,
+                        DepartmentId = 4,
 						EmployeeId = 2,
 						FirstName = "Mathias",
 						LastName = "Gernold",
 						BirthDate = new DateTime(1997, 10, 12),
-						CompanyId = 1,
-						DepartmentId = 2,
 						Created = DateTime.UtcNow,
 						Modified = DateTime.UtcNow
 					},
 					new Employee
 					{
+                        CompanyId = 3,
+                        DepartmentId = 7,
 						EmployeeId = 3,
 						FirstName = "Julia",
 						LastName = "Reynolds",
 						BirthDate = new DateTime(1955, 12, 16),
-						CompanyId = 1,
-						DepartmentId = 3,
 						Created = DateTime.UtcNow,
 						Modified = DateTime.UtcNow
 					},
 					new Employee
 					{
+                        CompanyId = 1,
+                        DepartmentId = 2,
 						EmployeeId = 4,
 						FirstName = "Alois",
 						LastName = "Mock",
 						BirthDate = new DateTime(1935, 2, 9),
-						CompanyId = 2,
-						DepartmentId = 1,
 						Created = DateTime.UtcNow,
 						Modified = DateTime.UtcNow
 					},
 					new Employee
 					{
+						CompanyId = 2,
+                        DepartmentId = 6,
 						EmployeeId = 5,
 						FirstName = "Gertraud",
 						LastName = "Bochold",
 						BirthDate = new DateTime(2001, 3, 4),
-						CompanyId = 3,
-						DepartmentId = 2,
 						Created = DateTime.UtcNow,
 						Modified = DateTime.UtcNow
 					}
+                    ,
+                    new Employee
+                    {
+						CompanyId = 2,
+                        DepartmentId = 6,
+                        EmployeeId = 6,
+                        FirstName = "Alan",
+                        LastName = "Ford",
+                        BirthDate = new DateTime(1984, 6, 15),
+                        Created = DateTime.UtcNow,
+                        Modified = DateTime.UtcNow
+                    }
 				);
 
 				if (!context.EmployeeAddresses.Any())
 				{
 					context.EmployeeAddresses.AddRange(
-						new EmployeeAddress { EmployeeId = 1, Address = "Bangalore, India" },
-						new EmployeeAddress { EmployeeId = 2, Address = "Newyork, USA" },
-						new EmployeeAddress { EmployeeId = 3, Address = "California, USA" },
-						new EmployeeAddress { EmployeeId = 4, Address = "NewDelhi, India" },
-						new EmployeeAddress { EmployeeId = 5, Address = "Kentuki, USA" }
+						new EmployeeAddress { EmployeeId = 1, Address = "Kentucky, USA" },
+						new EmployeeAddress { EmployeeId = 2, Address = "Berlin, Germany" },
+						new EmployeeAddress { EmployeeId = 3, Address = "Los Angeles, USA" },
+						new EmployeeAddress { EmployeeId = 4, Address = "Vienna, Austria" },
+						new EmployeeAddress { EmployeeId = 5, Address = "Cologne, Germany" },
+                        new EmployeeAddress { EmployeeId = 6, Address = "Milano, Italy" }
 					);
 				}
 
@@ -128,7 +151,8 @@ namespace CompanyWebApi.Services
 						new User { EmployeeId = 2, Username = "mathiasg", Password = "test", Token = string.Empty },
 						new User { EmployeeId = 3, Username = "juliar", Password = "test", Token = string.Empty },
 						new User { EmployeeId = 4, Username = "aloism", Password = "test", Token = string.Empty },
-						new User { EmployeeId = 5, Username = "gertraudb", Password = "test", Token = string.Empty }
+						new User { EmployeeId = 5, Username = "gertraudb", Password = "test", Token = string.Empty },
+						new User { EmployeeId = 6, Username = "alanf", Password = "test", Token = string.Empty }
 					);
 				}
 

@@ -4,6 +4,7 @@ using CompanyWebApi.Tests.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -25,9 +26,14 @@ namespace CompanyWebApi.Tests.UnitTests
         public async Task CanAdd()
         {
             _logger.LogInformation("CanAdd");
-            var department = new Department { DepartmentId = 999, Name = "TEST DEPARTMENT"};
-            var newDepartment = await _departmentRepository.AddAsync(department).ConfigureAwait(false);
-            Assert.Equal("TEST DEPARTMENT", newDepartment.Name);
+            var department = new Department
+            {
+                CompanyId = 1,
+                DepartmentId = 999,
+                Name = "TEST DEPARTMENT"
+            };
+            var repoDepartment = await _departmentRepository.AddDepartmentAsync(department).ConfigureAwait(false);
+            Assert.Equal("TEST DEPARTMENT", repoDepartment.Name);
         }
 
         [Fact]
@@ -35,12 +41,22 @@ namespace CompanyWebApi.Tests.UnitTests
         {
             var departments = new List<Department>
             {
-                new Department {DepartmentId = 1111, Name = "TEST1"},
-                new Department {DepartmentId = 2222, Name = "TEST2"},
-                new Department {DepartmentId = 3333, Name = "TEST3"}
+                new()
+                {
+                    CompanyId = 1, DepartmentId = 1111, Name = "TEST1"
+                },
+                new()
+                {
+                    CompanyId = 1, DepartmentId = 2222, Name = "TEST2"
+                },
+                new()
+                {
+                    CompanyId = 1, DepartmentId = 3333, Name = "TEST3"
+                }
             };
-            var nrDepartments = await _departmentRepository.AddAsync(departments).ConfigureAwait(false);
-            Assert.True(nrDepartments > 0);
+            await _departmentRepository.AddAsync(departments).ConfigureAwait(false);
+            await _departmentRepository.SaveAsync().ConfigureAwait(false);
+            Assert.True(departments.Count > 0);
         }
 
         [Fact]
@@ -53,39 +69,43 @@ namespace CompanyWebApi.Tests.UnitTests
         [Fact]
         public async Task CanDelete()
         {
-            var department = new Department { DepartmentId = 9999, Name = "TEST DEPARTMENT"};
-            var newDepartment = await _departmentRepository.AddAsync(department).ConfigureAwait(false);
-            var result = await _departmentRepository.DeleteAsync(newDepartment).ConfigureAwait(false);
-            Assert.True(result > 0);
+            var department = new Department
+            {
+                CompanyId = 1,
+                DepartmentId = 9999, 
+                Name = "TEST DEPARTMENT"
+            };
+            await _departmentRepository.AddDepartmentAsync(department, true).ConfigureAwait(false);
+            _departmentRepository.Remove(department);
+            await _departmentRepository.SaveAsync().ConfigureAwait(false);
+            var repoDepartment = await _departmentRepository.GetDepartmentAsync(department.DepartmentId).ConfigureAwait(false);
+            Assert.Null(repoDepartment);
         }
 
         [Fact]
-        public async Task CanGetAllByPredicate()
+        public async Task CanGetByPredicate()
         {
-            var companies = await _departmentRepository.GetAllAsync(dep => dep.Name.Equals("Development")).ConfigureAwait(false);
-            Assert.True(companies.Count > 0);
-        }
-
-        [Fact]
-        public async Task CanGetSingle()
-        {
-            var department = await _departmentRepository.GetSingleAsync(dep => dep.Name.Equals("Development")).ConfigureAwait(false);
+            var department = await _departmentRepository.GetDepartmentAsync(dep => dep.Name.Equals("Development")).ConfigureAwait(false);
             Assert.True(department != null);
         }
 
         [Fact]
         public async Task CanGetAll()
         {
-            var companies = await _departmentRepository.GetAllAsync().ConfigureAwait(false);
-            Assert.True(companies.Count > 0);
+            var companies = await _departmentRepository.GetDepartmentsAsync().ConfigureAwait(false);
+            Assert.True(companies.Any());
         }
 
         [Fact]
         public async Task CanUpdate()
         {
-            var department = new Department { DepartmentId = 1, Name = "HR Updated" };
-            var updatedDepartment = await _departmentRepository.UpdateAsync(department).ConfigureAwait(false);
-            Assert.Equal("HR Updated", updatedDepartment.Name);
+            var department = new Department
+            {
+                DepartmentId = 1, Name = "HR Updated"
+            };
+            await _departmentRepository.UpdateAsync(department).ConfigureAwait(false);
+            await _departmentRepository.SaveAsync().ConfigureAwait(false);
+            Assert.Equal("HR Updated", department.Name);
         }
     }
 }

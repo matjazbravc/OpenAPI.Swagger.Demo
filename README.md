@@ -716,7 +716,7 @@ services:
     ports:
         - 10000:80
 ```
-To execute compose file, open Powershell, and navigate to the compose file in the root folder. Then execute the following command: **docker-compose up -d --build**. The -d parameter executes the command detached. This means that the containers run in the background and don’t block your Powershell window. To check all running Containers use **docker ps**.
+To execute compose file, open Powershell, and navigate to the compose file in the root folder. Then execute the following command: **docker-compose up --build --remove-orphans**. The -d parameter executes the command detached. This means that the containers run in the background and don’t block your Powershell window. To check all running Containers use **docker ps**.
 
 To be able to host a SQLite database file in Docker we have to create Volume
 **"sqlite-database-volume"** which points to the **"Database"** folder from solution.

@@ -3,14 +3,14 @@ using CompanyWebApi.Services.Swagger.Filters;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Interfaces;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System;
-using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Interfaces;
 
 namespace CompanyWebApi.Services.Swagger
 {
@@ -21,7 +21,6 @@ namespace CompanyWebApi.Services.Swagger
     /// <see cref="IApiVersionDescriptionProvider"/> service has been resolved from the service container.</remarks>
     public class ConfigureSwaggerGenOptions : IConfigureOptions<SwaggerGenOptions>
     {
-        private readonly string _appName;
         private readonly IApiVersionDescriptionProvider _apiProvider;
         private readonly SwaggerConfig _swaggerConfig;
 
@@ -34,7 +33,6 @@ namespace CompanyWebApi.Services.Swagger
         {
             _apiProvider = apiProvider ?? throw new ArgumentNullException(nameof(apiProvider));
             _swaggerConfig = swaggerConfig.Value;
-            _appName = Assembly.GetExecutingAssembly().GetName().Name ?? string.Empty;
         }
 
         /// <inheritdoc />
@@ -78,15 +76,30 @@ namespace CompanyWebApi.Services.Swagger
                 }
             });
 
-            // Include Document file
-            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-            options.IncludeXmlComments(xmlPath);
+            // Include Document file for CompanyWebApi project
+            options.IncludeXmlComments(GetXmlCommentsPath(), true);
+
+            // Include Document file for CompanyWebApi.Contracts project
+            options.IncludeXmlComments(GetXmlCommentsPathForCompanyWebApiContracts());
 
             // Provide a custom strategy for generating the unique Id's
             options.CustomSchemaIds(x => x.FullName);
         }
 
+        private static string GetXmlCommentsPath()
+        {
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            return xmlPath;
+        }
+
+        private static string GetXmlCommentsPathForCompanyWebApiContracts()
+        {
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.Contracts.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            return xmlPath;
+        }
+        
         /// <summary>
         /// Create API version
         /// </summary>
@@ -121,7 +134,7 @@ namespace CompanyWebApi.Services.Swagger
                     }
                 }
             };
-
+  
             if (description.IsDeprecated)
             {
                 info.Description += " ** THIS API VERSION HAS BEEN DEPRECATED!";

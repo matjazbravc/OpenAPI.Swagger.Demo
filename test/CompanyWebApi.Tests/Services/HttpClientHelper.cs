@@ -1,3 +1,4 @@
+using System;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Net;
@@ -37,18 +38,43 @@ namespace CompanyWebApi.Tests.Services
 
         public async Task<TOut> PostAsync<TIn, TOut>(string path, TIn content)
         {
-            var jsonString = content == null ?
-                new StringContent(string.Empty, Encoding.UTF8, "application/json") :
-                new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
-            var response = await Client.PostAsync(path, jsonString).ConfigureAwait(false);
+            if (content == null)
+            {
+                throw new ApplicationException("content is null");
+            }
+            var jsonString = JsonConvert.SerializeObject(content);
+            var stringContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
+            var response = await Client.PostAsync(path, stringContent).ConfigureAwait(false);
+            return await GetContentAsync<TOut>(response);
+        }
+
+        public async Task<T> PutAsync<T>(string path, T content)
+        {
+            return await PutAsync<T, T>(path, content).ConfigureAwait(false);
+        }
+
+        public async Task<TOut> PutAsync<TIn, TOut>(string path, TIn content)
+        {
+            if (content == null)
+            {
+                throw new ApplicationException("content is null");
+            }
+            var jsonString = JsonConvert.SerializeObject(content);
+            var stringContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
+            var response = await Client.PutAsync(path, stringContent).ConfigureAwait(false);
             return await GetContentAsync<TOut>(response);
         }
 
         private static async Task<T> GetContentAsync<T>(HttpResponseMessage response)
         {
             response.EnsureSuccessStatusCode();
+            var settings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto,
+                NullValueHandling = NullValueHandling.Ignore
+            };
             var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            return JsonConvert.DeserializeObject<T>(responseString);
+            return JsonConvert.DeserializeObject<T>(responseString, settings);
         }
     }
 }

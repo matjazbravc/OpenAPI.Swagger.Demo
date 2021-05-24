@@ -1,19 +1,25 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 
 namespace CompanyWebApi.Contracts.Entities
 {
 	/// <summary>
-	/// Authenticate Entity
+	/// Authenticate model
 	/// </summary>
 	[Serializable]
-	[ExcludeFromCodeCoverage]
 	public class AuthenticateModel
 	{
+        /// <summary>
+        /// User name
+        /// </summary>
+        /// <example>alanf</example>
 		[Required]
 		public string Username { get; set; }
 
+        /// <summary>
+        /// Password
+        /// </summary>
+        /// <example>test</example>
 		[Required]
 		public string Password { get; set; }
 	}

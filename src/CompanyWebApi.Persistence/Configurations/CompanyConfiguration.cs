@@ -11,17 +11,18 @@ namespace CompanyWebApi.Persistence.Configurations
 			// Table
 			entity.ToTable("Companies");
 
-			// Properties
-			entity.HasKey(e => e.CompanyId);
-			entity.Property(e => e.Name)
-				.IsRequired()
-				.HasMaxLength(255);
+			// Keys
+			entity.HasKey(comp => comp.CompanyId);
+
+            // Properties
+			entity.Property(comp => comp.Name)
+				.IsRequired();
 
 			// Relationships
-			entity.HasMany(a => a.Employees)
-				.WithOne(b => b.Company)
+			entity.HasMany(comp => comp.Departments)
+				.WithOne(dep => dep.Company)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-				.HasForeignKey(c => c.CompanyId)
+				.HasForeignKey(dep => dep.CompanyId)
 				.OnDelete(DeleteBehavior.Cascade);
 		}
 	}

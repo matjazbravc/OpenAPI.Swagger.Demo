@@ -11,14 +11,19 @@ namespace CompanyWebApi.Persistence.Configurations
 			// Table
 			entity.ToTable("Users");
 			
-			// Keys, Properties
+			// Keys 
 			entity.HasKey(e => e.EmployeeId);
+
+			// Properties
 			entity.Property(e => e.Username)
-				.IsRequired()
-				.HasMaxLength(255);
+				.IsRequired();
+
 			entity.Property(e => e.Password)
-				.IsRequired()
-				.HasMaxLength(255);
+				.IsRequired();
+
+            // Indexes
+            entity.HasIndex(b => b.Username)
+                .IsUnique();
 
 			// Relationships
 			entity.HasOne(a => a.Employee)

@@ -11,14 +11,25 @@ namespace CompanyWebApi.Persistence.Configurations
 			// Table
 			entity.ToTable("Employees");
 			
-			// Properties
+			// Keys
 			entity.HasKey(e => e.EmployeeId);
-			entity.Property(e => e.FirstName)
-				.IsRequired()
-				.HasMaxLength(40);
+			
+            // Properties
+            entity.Property(e => e.FirstName)
+				.IsRequired();
 			entity.Property(e => e.LastName)
-				.IsRequired()
-				.HasMaxLength(20);
+				.IsRequired();
+
+            // Indexes
+            entity.HasIndex(b => b.FirstName);
+			entity.HasIndex(b => b.LastName);
+            entity.HasIndex(b => b.BirthDate);
+			
+			// Relationships
+			entity.HasOne(a => a.Department)
+                .WithMany(b => b.Employees)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade);
 		}
 	}
 }

@@ -4,38 +4,59 @@ using CompanyWebApi.Persistence.Repositories.Base;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Threading;
 using System;
+using System.Linq;
 
 namespace CompanyWebApi.Persistence.Repositories
 {
-    public class DepartmentRepository : BaseRepository<Department>, IDepartmentRepository
+    public class DepartmentRepository : BaseRepository<Department, ApplicationDbContext>, IDepartmentRepository
     {
-        public DepartmentRepository(ApplicationDbContext appDbContext) : base(appDbContext)
+        public DepartmentRepository(ApplicationDbContext dbContext)
+            : base(dbContext)
         {
         }
 
-        // https://www.learnentityframeworkcore.com/dbset/querying-data
-        public override async Task<Department> GetSingleAsync(Expression<Func<Department, bool>> predicate, CancellationToken cancellationToken = default)
+        public async Task<Department> AddDepartmentAsync(Department department, bool tracking = false)
         {
-            var company = await DatabaseSet
-                .Include(cmp => cmp.Employees).ThenInclude(emp => emp.EmployeeAddress)
-                .Include(cmp => cmp.Employees).ThenInclude(emp => emp.User)
-                .AsNoTracking()
-                .SingleOrDefaultAsync(predicate, cancellationToken).ConfigureAwait(false);
-            return company;
+            await AddAsync(department).ConfigureAwait(false);
+            await SaveAsync().ConfigureAwait(false);
+            return await GetDepartmentAsync(department.DepartmentId, tracking).ConfigureAwait(false);
         }
 
-        public override async Task<IList<Department>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<IList<Department>> GetDepartmentsAsync(bool tracking = false)
         {
-            IQueryable<Department> query = DatabaseSet;
-            var result = await query
-                .Include(cmp => cmp.Employees).ThenInclude(emp => emp.EmployeeAddress)
-                .Include(cmp => cmp.Employees).ThenInclude(emp => emp.User)
-                .AsNoTracking()
-                .ToListAsync(cancellationToken).ConfigureAwait(false);
+            var result = await GetAsync<Department>(
+                include: source => source
+                    .Include(dep => dep.Company)
+                    .Include(emp => emp.Employees).ThenInclude(emp => emp.EmployeeAddress)
+                    .Include(emp => emp.Employees).ThenInclude(emp => emp.User),
+                orderBy: o => o
+                    .OrderBy(ob => ob.DepartmentId),
+                tracking:tracking).ConfigureAwait(false);
+            return result;
+        }
+
+        public async Task<Department> GetDepartmentAsync(int id, bool tracking = false)
+        {
+            var result = await GetSingleOrDefaultAsync<Department>(
+                dpt => dpt.DepartmentId == id,
+                source => source
+                    .Include(dep => dep.Company)
+                    .Include(emp => emp.Employees).ThenInclude(emp => emp.EmployeeAddress)
+                    .Include(emp => emp.Employees).ThenInclude(emp => emp.User),
+                tracking).ConfigureAwait(false);
+            return result;
+        }
+
+        public async Task<Department> GetDepartmentAsync(Expression<Func<Department, bool>> predicate, bool tracking = false)
+        {
+            var result = await GetSingleOrDefaultAsync<Department>(predicate,
+                source => source
+                    .Include(dep => dep.Company)
+                    .Include(emp => emp.Employees).ThenInclude(emp => emp.EmployeeAddress)
+                    .Include(emp => emp.Employees).ThenInclude(emp => emp.User),
+                tracking).ConfigureAwait(false);
             return result;
         }
     }

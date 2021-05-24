@@ -28,17 +28,17 @@ namespace CompanyWebApi.Tests.UnitTests
             _logger.LogInformation("CanAdd");
             var employee = new Employee
             {
-                EmployeeId = 999,
-                FirstName = "Test",
-                LastName = "Tester",
+                EmployeeId = 9999,
+                FirstName = "TesterFirstName",
+                LastName = "TesterLastName",
                 BirthDate = new DateTime(2001, 12, 16),
                 CompanyId = 1,
                 DepartmentId = 1,
                 Created = DateTime.UtcNow,
                 Modified = DateTime.UtcNow
             };
-            var newEmployee = await _employeeRepository.AddAsync(employee).ConfigureAwait(false);
-            Assert.Equal("Tester", newEmployee.LastName);
+            var repoEmployee = await _employeeRepository.AddEmployeeAsync(employee).ConfigureAwait(false);
+            Assert.Equal("TesterLastName", repoEmployee.LastName);
         }
 
         [Fact]
@@ -53,40 +53,41 @@ namespace CompanyWebApi.Tests.UnitTests
         {
             var employee = new Employee
             {
-                EmployeeId = 9999,
-                FirstName = "Test",
-                LastName = "Tester",
+                EmployeeId = 99999,
+                FirstName = "TesterFirstName",
+                LastName = "TesterLastName",
                 BirthDate = new DateTime(2001, 12, 16),
                 CompanyId = 1,
                 DepartmentId = 1,
                 Created = DateTime.UtcNow,
                 Modified = DateTime.UtcNow
             };            
-            var newEmployee = await _employeeRepository.AddAsync(employee).ConfigureAwait(false);
-            var result = await _employeeRepository.DeleteAsync(newEmployee).ConfigureAwait(false);
-
-            Assert.True(result > 0);
+            var repoEmployee = await _employeeRepository.AddEmployeeAsync(employee, true).ConfigureAwait(false);
+            _employeeRepository.Remove(repoEmployee);
+            await _employeeRepository.SaveAsync().ConfigureAwait(false);
+            var deletedEmployee = await _employeeRepository.GetEmployeeAsync(employee.EmployeeId).ConfigureAwait(false);
+            Assert.Null(deletedEmployee);
         }
 
         [Fact]
         public async Task CanGetAllByPredicate()
         {
-            var employees = await _employeeRepository.GetAllAsync(cmp => cmp.FirstName.Equals("Julia")).ConfigureAwait(false);
-            Assert.True(employees.Count() > 0);
+            var employees = await _employeeRepository.GetEmployeesAsync().ConfigureAwait(false);
+            Assert.True(employees.Any());
         }
 
         [Fact]
         public async Task CanGetSingle()
         {
-            var employee = await _employeeRepository.GetSingleAsync(cmp => cmp.FirstName.Equals("Alois") && cmp.LastName.Equals("Mock")).ConfigureAwait(false);
+            var employee = await _employeeRepository.GetEmployeeAsync(cmp => cmp.FirstName.Equals("Alois") && cmp.LastName.Equals("Mock")).ConfigureAwait(false);
             Assert.True(employee != null);
         }
 
         [Fact]
         public async Task CanGetAll()
         {
-            var employees = await _employeeRepository.GetAllAsync().ConfigureAwait(false);
-            Assert.True(employees.Count() > 0);
+            var employees = await _employeeRepository.GetEmployeesAsync().ConfigureAwait(false);
+            Assert.True(employees.Any());
         }
 
         [Fact]
@@ -94,17 +95,18 @@ namespace CompanyWebApi.Tests.UnitTests
         {
             var employee = new Employee
             {
+                CompanyId = 1,
+                DepartmentId = 3,
                 EmployeeId = 3,
                 FirstName = "Julia",
                 LastName = "Reynolds Updated",
                 BirthDate = new DateTime(1955, 12, 16),
-                CompanyId = 1,
-                DepartmentId = 3,
                 Created = DateTime.UtcNow,
                 Modified = DateTime.UtcNow
             };
-            var updatedEmployee = await _employeeRepository.UpdateAsync(employee).ConfigureAwait(false);
-            Assert.Equal("Reynolds Updated", updatedEmployee.LastName);
+            await _employeeRepository.UpdateAsync(employee).ConfigureAwait(false);
+            await _employeeRepository.SaveAsync().ConfigureAwait(false);
+            Assert.Equal("Reynolds Updated", employee.LastName);
         }
     }
 }

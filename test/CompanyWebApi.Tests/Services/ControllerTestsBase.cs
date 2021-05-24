@@ -1,6 +1,7 @@
 using System;
 using System.Dynamic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -21,6 +22,7 @@ namespace CompanyWebApi.Tests.Services
                 AllowAutoRedirect = true
             };
             Client = factory.CreateClient(options);
+            Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             Token = new ExpandoObject();
             Token.sub = Guid.NewGuid();
             Token.role = new[] { "admin_role", "admin" };

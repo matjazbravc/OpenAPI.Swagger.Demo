@@ -2,97 +2,168 @@
 using CompanyWebApi.Contracts.Dto;
 using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Controllers.Base;
-using CompanyWebApi.Persistence.Repositories;
-using Microsoft.AspNetCore.Authorization;
+using CompanyWebApi.Persistence.Repositories.Factory;
+using CompanyWebApi.Services.Filters;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace CompanyWebApi.Controllers.V1
 {
-    [Authorize]
+    [ApiAuthorization]
     [ApiController]
     [ApiVersion("1.0", Deprecated = true)]
     [Produces("application/json")]
     [EnableCors("EnableCORS")]
+    [ServiceFilter(typeof(ValidModelStateAsyncActionFilter))]
     [Route("api/v{version:apiVersion}/[controller]")]
     public class DepartmentsController : BaseController<DepartmentsController>
     {
-        private readonly IDepartmentRepository _departmentRepository;
+        private readonly IRepositoryFactory _repositoryFactory;
         private readonly IConverter<Department, DepartmentDto> _departmentToDtoConverter;
         private readonly IConverter<IList<Department>, IList<DepartmentDto>> _departmentToDtoListConverter;
 
-        public DepartmentsController(IDepartmentRepository departmentRepository,
+        public DepartmentsController(IRepositoryFactory repositoryFactory,
             IConverter<Department, DepartmentDto> departmentToDtoConverter,
             IConverter<IList<Department>, IList<DepartmentDto>> departmentToDtoListConverter)
         {
-            _departmentRepository = departmentRepository;
+            _repositoryFactory = repositoryFactory;
             _departmentToDtoConverter = departmentToDtoConverter;
             _departmentToDtoListConverter = departmentToDtoListConverter;
         }
 
         /// <summary>
-        /// Create Department
+        /// Add a new department
         /// </summary>
-        /// <remarks>This API will create new Department</remarks>
-        /// POST /api/departments/create/{department}
-        /// <param name="department">Department model</param>
+        /// <remarks>
+        /// Sample request body:
+        ///
+        ///     {
+        ///        "companyId" : 1, 
+        ///        "name": "Test Department"
+        ///     }
+        /// 
+        /// Sample response body:
+        /// 
+        ///     {
+        ///         "departmentId": 10,
+        ///         "name": "Test Department",
+        ///         "employees": []
+        ///     }
+        /// 
+        /// </remarks>
+        /// <param name="department">DepartmentDto model</param>
         /// <param name="version">API version</param>
-        [ProducesResponseType(201, Type = typeof(Department))]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
+        [SwaggerResponse(StatusCodes.Status201Created, Type = typeof(DepartmentDto), Description = "Returns a new department")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Company was not found")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized user")]
         [HttpPost("create", Name = "CreateDepartmentV1")]
-        public async Task<IActionResult> CreateAsync([FromBody] Department department, ApiVersion version)
+        public async Task<IActionResult> CreateAsync([FromBody] DepartmentCreateDto department, ApiVersion version)
         {
             Logger.LogDebug("CreateAsync");
-            if (department == null)
+            if (!await _repositoryFactory.CompanyRepository.ExistsAsync(c => c.CompanyId == department.CompanyId).ConfigureAwait(false))
             {
-                return BadRequest(new { message = "The department is null" });
+                return NotFound(new { message = $"The Company with id {department.CompanyId} was not found" });
             }
-            await _departmentRepository.AddAsync(department).ConfigureAwait(false);
-            return CreatedAtRoute("GetDepartmentByIdV1", new { id = department.DepartmentId, version = version.ToString() }, department);
+            
+            var newDepartment = new Department()
+            {
+                CompanyId = department.CompanyId,
+                Name = department.Name
+            };
+
+            var repoDepartment = await _repositoryFactory.DepartmentRepository.AddDepartmentAsync(newDepartment).ConfigureAwait(false);
+            var result = _departmentToDtoConverter.Convert(repoDepartment);
+            return new ObjectResult(result)
+            {
+                StatusCode = StatusCodes.Status201Created
+            };
         }
 
         /// <summary>
-        /// Delete Department
+        /// Deletes a department with id
         /// </summary>
-        /// <remarks>This API will delete Department with Id</remarks>
-        /// DELETE /api/departments/{id}
-        /// <param name="id"></param>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     DELETE /api/v2/departments/1
+        ///
+        /// Sample response body:
+        ///     
+        ///    Code 200 Success
+        /// 
+        /// </remarks>
+        /// <param name="id" example="1">Department Id</param>
         /// <param name="version">API version</param>
-        /// <returns></returns>
-        [ProducesResponseType(204)]
-        [ProducesResponseType(404)]
+        [SwaggerResponse(StatusCodes.Status200OK, Description = "Department was successfuly deleted")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "No department was found")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized user")]
         [HttpDelete("{id:int}", Name = "DeleteDepartmentByIdV1")]
         public async Task<IActionResult> DeleteAsync(int id, ApiVersion version)
         {
-            Logger.LogDebug("DeleteAsync");
-            var department = await _departmentRepository.GetSingleAsync(cmp => cmp.DepartmentId == id).ConfigureAwait(false);
+            Logger.LogDebug("RemoveAsync");
+            var department = await _repositoryFactory.DepartmentRepository.GetDepartmentAsync(id).ConfigureAwait(false);
             if (department == null)
             {
                 return NotFound(new { message = "The department was not found" });
             }
-            await _departmentRepository.DeleteAsync(department).ConfigureAwait(false);
-            return NoContent();
+            _repositoryFactory.DepartmentRepository.Remove(department);
+            await _repositoryFactory.SaveAsync().ConfigureAwait(false);
+            return Ok();
         }
 
         /// <summary>
-        /// Get all Departments
+        /// Gets all departments
         /// </summary>
-        /// <remarks>This API return list of all Departments</remarks>
-        /// GET api/departments/getAll
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /api/v2/departments/getall
+        ///
+        /// Sample response body:
+        ///
+        ///     [
+        ///       {
+        ///         "departmentId": 1,
+        ///         "name": "Logistics",
+        ///         "companyId": 1,
+        ///         "companyName": "Company One",
+        ///         "employees": [
+        ///           "John Whyne, Address: Kentucky, USA, Department: Logistics, Username: johnw"
+        ///         ]
+        ///       },
+        ///       {
+        ///         "departmentId": 2,
+        ///         "name": "Administration",
+        ///         "companyId": 1,
+        ///         "companyName": "Company One",
+        ///         "employees": [
+        ///           "Alois Mock, Address: Vienna, Austria, Department: Administration, Username: aloism"
+        ///         ]
+        ///       },
+        ///       {
+        ///         "departmentId": 3,
+        ///         "name": "Development",
+        ///         "companyId": 1,
+        ///         "companyName": "Company One",
+        ///         "employees": []
+        ///       }
+        ///     ]
+        /// </remarks>
         /// <param name="version">API version</param>
-        /// <returns>List of Departments</returns>
-        [ProducesResponseType(200, Type = typeof(IEnumerable<DepartmentDto>))]
-        [ProducesResponseType(404)]
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(IEnumerable<DepartmentDto>), Description = "Return list of departments")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "The departments list is empty")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized user")]
         [HttpGet("getAll", Name = "GetAllDepartmentsV1")]
         public async Task<ActionResult<IEnumerable<DepartmentDto>>> GetAllAsync(ApiVersion version)
         {
-            Logger.LogDebug("GetAllAsync");
-            var departments = await _departmentRepository.GetAllAsync().ConfigureAwait(false);
+            Logger.LogDebug("GetAsync");
+            var departments = await _repositoryFactory.DepartmentRepository.GetDepartmentsAsync().ConfigureAwait(false);
             if (!departments.Any())
             {
                 return NotFound(new { message = "The departments list is empty" });
@@ -102,21 +173,36 @@ namespace CompanyWebApi.Controllers.V1
         }
 
         /// <summary>
-        /// Get Department
+        /// Get a department with id
         /// </summary>
-        /// <remarks>This API return Department with Id</remarks>
-        /// GET /api/departments/{id}
-        /// <param name="id"></param>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /api/v2/departments/1
+        ///
+        /// Sample response body:
+        /// 
+        ///     {
+        ///       "departmentId": 1,
+        ///       "name": "Logistics",
+        ///       "companyId": 1,
+        ///       "companyName": "Company One",
+        ///       "employees": [
+        ///         "John Whyne, Address: Kentucky, USA, Department: Logistics, Username: johnw"
+        ///       ]
+        ///     }
+        /// 
+        /// </remarks>
+        /// <param name="id" example="1">Department Id</param>
         /// <param name="version">API version</param>
-        /// <returns>Return Department</returns>
-        [AllowAnonymous]
         [HttpGet("{id:int}", Name = "GetDepartmentByIdV1")]
-        [ProducesResponseType(200, Type = typeof(DepartmentDto))]
-        [ProducesResponseType(404)]
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(DepartmentDto), Description = "Return department")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "The department was not found")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized user")]
         public async Task<ActionResult<DepartmentDto>> GetAsync(int id, ApiVersion version)
         {
             Logger.LogDebug("GetAsync");
-            var department = await _departmentRepository.GetSingleAsync(cmp => cmp.DepartmentId == id).ConfigureAwait(false);
+            var department = await _repositoryFactory.DepartmentRepository.GetDepartmentAsync(id).ConfigureAwait(false);
             if (department == null)
             {
                 return NotFound(new { message = "The department was not found" });
@@ -126,28 +212,51 @@ namespace CompanyWebApi.Controllers.V1
         }
 
         /// <summary>
-        /// Update Department
+        /// Updates a department
         /// </summary>
-        /// POST /api/departments/update/{department}
-        /// <param name="department"></param>
+        /// <remarks>
+        /// Sample request body:
+        ///
+        ///     {
+        ///       "departmentId": 1,
+        ///       "name": "NEW DEPARTMENT"
+        ///     }
+        /// 
+        /// Sample response body:
+        /// 
+        ///     {
+        ///       "departmentId": 1,
+        ///       "name": "NEW DEPARTMENT",
+        ///       "employees": [
+        ///         "John Whyne, Address: Bangalore, India, Department: NEW DEPARTMENT, Username: johnw",
+        ///         "Alois Mock, Address: NewDelhi, India, Department: NEW DEPARTMENT, Username: aloism"
+        ///       ]
+        ///     }
+        /// 
+        /// </remarks>
+        /// <param name="department">DepartmentUpdateDto model</param>
         /// <param name="version">API version</param>
-        /// <returns>Returns updated Department</returns>
-        [ProducesResponseType(201, Type = typeof(DepartmentDto))]
-        [ProducesResponseType(400)]
-        [HttpPost("update", Name = "UpdateDepartmentV1")]
-        public async Task<IActionResult> UpdateAsync([FromBody] Department department, ApiVersion version)
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(DepartmentDto), Description = "Return updated department")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "The department was not found")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized user")]
+        [HttpPut("update", Name = "UpdateDepartmentV1")]
+        public async Task<IActionResult> UpdateAsync([FromBody] DepartmentUpdateDto department, ApiVersion version)
         {
             Logger.LogDebug("UpdateAsync");
-            if (department == null)
+            var repoDepartment = await _repositoryFactory.DepartmentRepository.GetDepartmentAsync(department.DepartmentId).ConfigureAwait(false);
+            if (repoDepartment == null)
             {
-                return BadRequest(new { message = "The retrieved department is null" });
+                return NotFound(new { message = "The department was not found" });
             }
-            var updatedDepartment = await _departmentRepository.UpdateAsync(department).ConfigureAwait(false);
-            if (updatedDepartment == null)
-            {
-                return BadRequest(new { message = "The updated department is null" });
-            }
-            return CreatedAtRoute("GetDepartmentByIdV1", new { id = department.DepartmentId, version = version.ToString() }, department);
+
+            // Update Department's name
+            repoDepartment.Name = department.Name;
+
+            await _repositoryFactory.DepartmentRepository.UpdateAsync(repoDepartment).ConfigureAwait(false);
+            await _repositoryFactory.SaveAsync().ConfigureAwait(false);
+
+            var result = _departmentToDtoConverter.Convert(repoDepartment);
+            return Ok(result);
         }
     }
 }

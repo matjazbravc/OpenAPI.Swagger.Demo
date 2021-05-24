@@ -1,4 +1,6 @@
-﻿using CompanyWebApi.Services.Swagger;
+﻿using CompanyWebApi.Persistence.Repositories.Factory;
+using CompanyWebApi.Services.Swagger;
+using CompanyWebApi.Services.Swagger.Filters;
 using Microsoft.AspNetCore.Mvc.Versioning.Conventions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -69,7 +71,23 @@ namespace CompanyWebApi.Extensions
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerGenOptions>();
 
             // Register the Swagger generator
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(options =>
+            {
+                // Enable Swagger annotations
+                options.EnableAnnotations();
+
+                // Application Controller's API document description information
+                options.DocumentFilter<SwaggerDocumentFilter>();
+            });
+        }
+
+        /// <summary>
+        /// Adds repository factory
+        /// </summary>
+        /// <param name="services"></param>
+        public static void AddRepositoryFactory(this IServiceCollection services)
+        {
+            services.AddScoped<IRepositoryFactory, RepositoryFactory>();
         }
     }
 }

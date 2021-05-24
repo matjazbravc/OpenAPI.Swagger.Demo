@@ -1,5 +1,4 @@
 using CompanyWebApi.Contracts.Dto;
-using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Tests.Services;
 using System.Collections.Generic;
 using System.Net;
@@ -26,35 +25,20 @@ namespace CompanyWebApi.Tests.IntegrationTests
 		[Fact]
 		public async Task CanCreateAndDeleteEmployee()
 		{
-			var newCompany = new Company
+            var newEmployee = new EmployeeCreateDto
 			{
-				CompanyId = 999,
-				Name = "TEST COMPANY",
-				Created = DateTime.UtcNow,
-				Modified = DateTime.UtcNow
+                FirstName = "Sylvester",
+                LastName = "Holt",
+                BirthDate = new DateTime(1995, 8, 7),
+                CompanyId = 1,
+                DepartmentId = 1,
+				Address = "New Address",
+				Password = "sdfaeswgraewg23423&",
+				Username = "sylholt"
 			};
-
-			var newDepartment = new Department { DepartmentId = 999, Name = "TEST DEPARTMENT"};
-
-			/* Create Employee */
-			var newEmployee = new Employee
-			{
-				EmployeeId = 999,
-				FirstName = "Sylvester",
-				LastName = "Holt",
-				BirthDate = new DateTime(1995, 8, 7),
-				Company = newCompany,
-				Department = newDepartment,
-				Created = DateTime.UtcNow,
-				Modified = DateTime.UtcNow
-			};
-
-			var employee = await _httpClientHelper.PostAsync(_baseUrl + "create", newEmployee).ConfigureAwait(false);
-			Assert.Equal("Sylvester", employee.FirstName);
-			Assert.Equal("Holt", employee.LastName);
-
-			/* Delete new Employee */
-			await _httpClientHelper.DeleteAsync(_baseUrl + "999").ConfigureAwait(false);
+            var employee = await _httpClientHelper.PostAsync<EmployeeCreateDto, EmployeeDto>(_baseUrl + "create", newEmployee).ConfigureAwait(false);
+            Assert.Equal(newEmployee.FirstName, employee.FirstName);
+            await _httpClientHelper.DeleteAsync(_baseUrl + $"DeleteEmployeeById{API_VERSION}/{employee.EmployeeId}").ConfigureAwait(false);
 		}
 
 		[Fact]
@@ -78,18 +62,16 @@ namespace CompanyWebApi.Tests.IntegrationTests
 		{
 			// Get first employee
             /* Create Employee */
-            var newEmployee = new Employee
+            var newEmployee = new EmployeeUpdateDto()
             {
                 EmployeeId = 1,
                 FirstName = "Johnny",
                 LastName = "Holt",
-                BirthDate = new DateTime(1995, 8, 7),
-                Created = DateTime.UtcNow,
-                Modified = DateTime.UtcNow
+                BirthDate = new DateTime(1995, 8, 7)
             };
 
 			// Update employee
-			var updatedEmployee = await _httpClientHelper.PostAsync(_baseUrl + "update", newEmployee).ConfigureAwait(false);
+			var updatedEmployee = await _httpClientHelper.PutAsync<EmployeeUpdateDto, EmployeeDto>(_baseUrl + "update", newEmployee).ConfigureAwait(false);
 
 			// First name should be a new one
 			Assert.Equal("Johnny", updatedEmployee.FirstName);

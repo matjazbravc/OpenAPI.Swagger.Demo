@@ -1,10 +1,8 @@
 using CompanyWebApi.Contracts.Dto;
-using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Tests.Services;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using System;
 using Xunit;
 
 namespace CompanyWebApi.Tests.IntegrationTests
@@ -26,10 +24,13 @@ namespace CompanyWebApi.Tests.IntegrationTests
 		[Fact]
 		public async Task CanCreateAndDelete()
 		{
-			var newDepartment = new Department { DepartmentId = 999, Name = "TEST DEPARTMENT" };
-			var department = await _httpClientHelper.PostAsync(_baseUrl + "create", newDepartment).ConfigureAwait(false);
-			Assert.Equal("TEST DEPARTMENT", department.Name);
-			await _httpClientHelper.DeleteAsync(_baseUrl + $"DeleteDepartmentById{API_VERSION}/999").ConfigureAwait(false);
+			var newDepartment = new DepartmentCreateDto
+			{
+                CompanyId = 1, Name = "Test Department"
+            };
+			var department = await _httpClientHelper.PostAsync<DepartmentCreateDto, DepartmentDto>(_baseUrl + "create", newDepartment).ConfigureAwait(false);
+			Assert.Equal(newDepartment.Name, department.Name);
+			await _httpClientHelper.DeleteAsync(_baseUrl + $"DeleteDepartmentById{API_VERSION}/{department.DepartmentId}").ConfigureAwait(false);
 		}
 
 		[Fact]
@@ -50,8 +51,11 @@ namespace CompanyWebApi.Tests.IntegrationTests
 		[Fact]
 		public async Task CanUpdate()
 		{
-            var departmentToUpdate = new Department { DepartmentId = 1, Name = "TEST DEPARTMENT",  Created = DateTime.UtcNow, Modified = DateTime.UtcNow };
-			var updatedDepartment = await _httpClientHelper.PostAsync(_baseUrl + "update", departmentToUpdate).ConfigureAwait(false);
+            var departmentToUpdate = new DepartmentUpdateDto()
+            {
+                DepartmentId = 1, Name = "TEST DEPARTMENT"
+            };
+			var updatedDepartment = await _httpClientHelper.PutAsync<DepartmentUpdateDto, DepartmentDto>(_baseUrl + "update", departmentToUpdate).ConfigureAwait(false);
 			Assert.Equal("TEST DEPARTMENT", updatedDepartment.Name);
 		}
 	}

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using System;
+using System.Linq;
+using CompanyWebApi.Contracts.Dto;
 using Xunit;
 
 namespace CompanyWebApi.Tests.IntegrationTests
@@ -11,61 +13,57 @@ namespace CompanyWebApi.Tests.IntegrationTests
     public class UsersControllerTests : ControllerTestsBase
     {
         private const string API_VERSION = "V2";
-        private readonly string _baseUrl;
+        private readonly string _usersBaseUrl;
+        private readonly string _employeesBaseUrl;
         private readonly HttpClientHelper _httpClientHelper;
 
         public UsersControllerTests(WebApiTestFactory factory)
             : base(factory)
         {
-            _baseUrl = $"/api/{API_VERSION.ToLower()}/users/";
+            _usersBaseUrl = $"/api/{API_VERSION.ToLower()}/users/";
+            _employeesBaseUrl = $"/api/{API_VERSION.ToLower()}/employees/";
             _httpClientHelper = new HttpClientHelper(Client);
+            _httpClientHelper.Client.SetFakeBearerToken((object)Token);
         }
 
         [Fact]
         public async Task CanCreateAndDeleteUsers()
         {
-            var newCompany = new Company
+            var newEmployee = new EmployeeCreateDto()
             {
-                CompanyId = 9999,
-                Name = "Company TEST",
-                Created = DateTime.UtcNow,
-                Modified = DateTime.UtcNow
+                CompanyId = 1,
+                DepartmentId = 1,
+                FirstName = "TestFirstName",
+                LastName = "TestLastName",
+                BirthDate = new DateTime(1991, 8, 7),
+                Address = "TestAddress"
             };
-            var newDepartment = new Department { DepartmentId = 9999, Name = "Department TEST" };
-            var newEmployee = new Employee
+            // Save test employee
+            var employee = await _httpClientHelper.PostAsync<EmployeeCreateDto, EmployeeDto>(_employeesBaseUrl + "create", newEmployee).ConfigureAwait(false);
+
+            // Create test user
+            var newUser = new UserCreateDto()
             {
-                EmployeeId = 9999,
-                FirstName = "Sylvester",
-                LastName = "Holt",
-                BirthDate = new DateTime(1995, 8, 7),
-                Company = newCompany,
-                Department = newDepartment,
-                Created = DateTime.UtcNow,
-                Modified = DateTime.UtcNow
-            };
-            var newUser = new User
-            {
-                EmployeeId = newEmployee.EmployeeId,
-                Employee = newEmployee,
+                EmployeeId = employee.EmployeeId,
                 Username = "testuser",
-                Password = "test",
-                Token = string.Empty
+                Password = "testpassword"
             };
 
-            _httpClientHelper.Client.SetFakeBearerToken((object)Token);
-            var user = await _httpClientHelper.PostAsync(_baseUrl + "create", newUser).ConfigureAwait(false);
+            var user = await _httpClientHelper.PostAsync<UserCreateDto, UserDto>(_usersBaseUrl + "create", newUser).ConfigureAwait(false);
             Assert.Equal("testuser", user.Username);
 
-            /* Delete new User */
-            _httpClientHelper.Client.SetFakeBearerToken((object)Token);
-            await _httpClientHelper.DeleteAsync(_baseUrl + $"DeleteUserByName{API_VERSION}/testuser").ConfigureAwait(false);
+            // Delete test user
+            await _httpClientHelper.DeleteAsync(_usersBaseUrl + $"DeleteUserByEmployeeIdAsync{API_VERSION}/{user.EmployeeId}").ConfigureAwait(false);
+
+            // Delete test employee
+            await _httpClientHelper.DeleteAsync(_employeesBaseUrl + $"DeleteEmployeeById{API_VERSION}/{employee.EmployeeId}").ConfigureAwait(false);
         }
 
         [Fact]
         public async Task CanGetAllUsers()
         {
             _httpClientHelper.Client.SetFakeBearerToken((object)Token);
-            var users = await _httpClientHelper.GetAsync<List<User>>(_baseUrl + "getall").ConfigureAwait(false);
+            var users = await _httpClientHelper.GetAsync<List<UserDto>>(_usersBaseUrl + "getall").ConfigureAwait(false);
             Assert.Contains(users, p => p.Username == "johnw");
         }
 
@@ -73,8 +71,8 @@ namespace CompanyWebApi.Tests.IntegrationTests
         public async Task CanGetUser()
         {
             _httpClientHelper.Client.SetFakeBearerToken((object)Token);
-            var user = await _httpClientHelper.GetAsync<User>(_baseUrl + "johnw").ConfigureAwait(false);
-            Assert.Equal("johnw", user.Username);
+            var users = await _httpClientHelper.GetAsync<List<UserDto>>(_usersBaseUrl + "johnw").ConfigureAwait(false);
+            Assert.True(users.Any());
         }
 
         [Fact]
@@ -89,17 +87,18 @@ namespace CompanyWebApi.Tests.IntegrationTests
                 Token = string.Empty
             };
 
-            _httpClientHelper.Client.SetFakeBearerToken((object)Token);
-            var updatedUser = await _httpClientHelper.PostAsync(_baseUrl + "update", newUser).ConfigureAwait(false);
+            var updatedUser = await _httpClientHelper.PutAsync(_usersBaseUrl + "update", newUser).ConfigureAwait(false);
             Assert.Equal("abcde12345", updatedUser.Password);
         }
 
         [Fact]
         public async Task CanUserAuthenticate()
         {
-            _httpClientHelper.Client.SetFakeBearerToken((object)Token);
-            var user = new User { EmployeeId = 1, Username = "johnw", Password = "test", Token = string.Empty };
-            var authenticatedUser = await _httpClientHelper.PostAsync(_baseUrl + "authenticate", user).ConfigureAwait(false);
+            var user = new AuthenticateModel
+            {
+                Username = "johnw", Password = "test"
+            };
+            var authenticatedUser = await _httpClientHelper.PostAsync<AuthenticateModel, AuthenticateModel>(_usersBaseUrl + "authenticate", user).ConfigureAwait(false);
             Assert.NotNull(authenticatedUser);
         }
     }

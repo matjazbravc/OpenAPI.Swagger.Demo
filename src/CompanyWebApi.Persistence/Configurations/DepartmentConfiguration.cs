@@ -11,19 +11,19 @@ namespace CompanyWebApi.Persistence.Configurations
 			// Table
 			entity.ToTable("Departments");
 
-			// Properties
-			entity.HasKey(e => e.DepartmentId);
-			entity.Property(e => e.Name)
-				.IsRequired()
-				.HasMaxLength(255);
+            // Keys
+			entity.HasKey(dep => dep.DepartmentId);
+
+            // Properties
+			entity.Property(dep => dep.Name)
+				.IsRequired();
 
 			// Relationships
-			entity.HasMany(a => a.Employees)
-				.WithOne(b => b.Department)
+			entity.HasMany(dep => dep.Employees)
+				.WithOne(emp => emp.Department)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-				.HasForeignKey(c => c.DepartmentId)
+				.HasForeignKey(emp => emp.DepartmentId)
 				.OnDelete(DeleteBehavior.Cascade);
-
 		}
 	}
 }

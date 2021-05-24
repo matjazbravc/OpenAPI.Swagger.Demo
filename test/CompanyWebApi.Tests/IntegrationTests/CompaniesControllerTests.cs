@@ -1,10 +1,8 @@
 using CompanyWebApi.Contracts.Dto;
-using CompanyWebApi.Contracts.Entities;
 using CompanyWebApi.Tests.Services;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using System;
 using Xunit;
 
 namespace CompanyWebApi.Tests.IntegrationTests
@@ -26,10 +24,13 @@ namespace CompanyWebApi.Tests.IntegrationTests
 		[Fact]
 		public async Task CanCreateAndDeleteCompanies()
 		{
-			var newCompany = new Company { CompanyId = 999, Name = "Test Company",  Created = DateTime.UtcNow, Modified = DateTime.UtcNow };
-			var company = await _httpClientHelper.PostAsync(_baseUrl + "create", newCompany).ConfigureAwait(false);
+			var newCompany = new CompanyCreateDto
+            {
+                Name = "Test Company"
+            };
+ 			var company = await _httpClientHelper.PostAsync<CompanyCreateDto, CompanyDto>(_baseUrl + "create", newCompany).ConfigureAwait(false);
 			Assert.Equal("Test Company", company.Name);
-			await _httpClientHelper.DeleteAsync(_baseUrl + $"DeleteCompanyById{API_VERSION}/999").ConfigureAwait(false);
+			await _httpClientHelper.DeleteAsync(_baseUrl + $"DeleteCompanyById{API_VERSION}/{company.CompanyId}").ConfigureAwait(false);
 		}
 
 		[Fact]
@@ -50,8 +51,11 @@ namespace CompanyWebApi.Tests.IntegrationTests
 		[Fact]
 		public async Task CanUpdateCompany()
 		{
-            var companyToUpdate = new Company { CompanyId = 1, Name = "Test Company",  Created = DateTime.UtcNow, Modified = DateTime.UtcNow };
-			var updatedCompany = await _httpClientHelper.PostAsync(_baseUrl + "update", companyToUpdate).ConfigureAwait(false);
+            var companyToUpdate = new CompanyUpdateDto
+			{
+                CompanyId = 1, Name = "Test Company"
+            };
+			var updatedCompany = await _httpClientHelper.PutAsync<CompanyUpdateDto, CompanyDto>(_baseUrl + "update", companyToUpdate).ConfigureAwait(false);
 			Assert.Equal("Test Company", updatedCompany.Name);
 		}
 	}

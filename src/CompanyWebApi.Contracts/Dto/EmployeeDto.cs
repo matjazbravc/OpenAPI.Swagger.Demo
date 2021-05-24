@@ -1,5 +1,5 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.ComponentModel.DataAnnotations;
+using System;
 
 namespace CompanyWebApi.Contracts.Dto
 {
@@ -7,9 +7,10 @@ namespace CompanyWebApi.Contracts.Dto
 	/// Employee Data Transfer Object
 	/// </summary>
 	[Serializable]
-	[ExcludeFromCodeCoverage]
 	public class EmployeeDto
 	{
+        [Key]
+        [Range(1, int.MaxValue, ErrorMessage = "Please enter a value bigger than {1}")]
 		public int EmployeeId { get; set; }
 
 		public string FirstName { get; set; }
@@ -20,12 +21,16 @@ namespace CompanyWebApi.Contracts.Dto
 
 		public int Age { get; set; }
 
-		public string Company { get; set; }
-
-		public string Department { get; set; }
-
 		public string Address { get; set; }
 
 		public string Username { get; set; }
+
+        public int CompanyId { get; set; }
+
+        public string Company { get; set; }
+
+        public int DepartmentId { get; set; }
+
+        public string Department { get; set; }
 	}
 }

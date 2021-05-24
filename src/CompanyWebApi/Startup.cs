@@ -8,6 +8,7 @@ using CompanyWebApi.Middleware;
 using CompanyWebApi.Persistence.DbContexts;
 using CompanyWebApi.Persistence.Repositories;
 using CompanyWebApi.Services.Authorization;
+using CompanyWebApi.Services.Filters;
 using CompanyWebApi.Services.Helpers;
 using CompanyWebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -79,6 +80,8 @@ namespace CompanyWebApi
             // Adds Swagger support
             services.AddSwaggerMiddleware();
 
+            services.AddRepositoryFactory();
+
             // Add Database Context
             services.AddDbContext<ApplicationDbContext>(options =>
             {
@@ -97,6 +100,7 @@ namespace CompanyWebApi
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()?.CreateScope())
             {
                 var context = serviceScope?.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                context?.Database.EnsureDeleted();
                 context?.Database.EnsureCreated();
                 SeedData.Initialize(context);
             }
@@ -158,13 +162,14 @@ namespace CompanyWebApi
             // Adds a CORS middleware
             app.UseCors("EnableCORS");
 
+            // These are the important ones - order matters!
             app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 //Add health check endpoint
-                endpoints.MapHealthChecks("/healthz"); 
+                endpoints.MapHealthChecks("/healthz");
                 // Adds enpoints for controller actions without specifyinf any routes
                 endpoints.MapControllers();
             });
@@ -248,14 +253,11 @@ namespace CompanyWebApi
         /// <param name="services"></param>
         protected virtual void RegisterServices(IServiceCollection services)
         {
+            services.AddScoped<ValidModelStateAsyncActionFilter>();
+
             // Register middlewares
             services.AddTransient<ApiExceptionHandlingMiddleware>();
             services.AddTransient<RequestResponseLoggingMiddleware>();
-
-            // Services
-            services.AddTransient<IJwtTokenHandler, JwtTokenHandler>();
-            services.AddTransient<IJwtFactory, JwtFactory>();
-            services.AddScoped<IUserService, UserService>();
 
             //*********************************************************************************
             // Registering multiple implementations of the same interface IRepository<TEntity>
@@ -265,6 +267,11 @@ namespace CompanyWebApi
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
 
+            // Services
+            services.AddTransient<IJwtTokenHandler, JwtTokenHandler>();
+            services.AddTransient<IJwtFactory, JwtFactory>();
+            services.AddScoped<IUserService, UserService>();
+
             // Entity to Dto Converters
             services.AddTransient<IConverter<Company, CompanyDto>, CompanyToDtoConverter>();
             services.AddTransient<IConverter<IList<Company>, IList<CompanyDto>>, CompanyToDtoConverter>();
@@ -272,6 +279,11 @@ namespace CompanyWebApi
             services.AddTransient<IConverter<IList<Department>, IList<DepartmentDto>>, DepartmentToDtoConverter>();
             services.AddTransient<IConverter<Employee, EmployeeDto>, EmployeeToDtoConverter>();
             services.AddTransient<IConverter<IList<Employee>, IList<EmployeeDto>>, EmployeeToDtoConverter>();
+            services.AddTransient<IConverter<EmployeeCreateDto, Employee>, EmployeeFromDtoConverter>();
+            services.AddTransient<IConverter<IList<EmployeeCreateDto>, IList<Employee>>, EmployeeFromDtoConverter>();
+            services.AddTransient<IConverter<User, UserDto>, UserToDtoConverter>();
+            services.AddTransient<IConverter<IList<User>, IList<UserDto>>, UserToDtoConverter>();
+            services.AddTransient<IConverter<User, UserAuthenticateDto>, UserToAuthenticateDtoConverter>();
         }
     }
 }

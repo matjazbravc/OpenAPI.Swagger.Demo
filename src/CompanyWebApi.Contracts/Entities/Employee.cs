@@ -1,15 +1,11 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using CompanyWebApi.Contracts.Entities.Base;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics.CodeAnalysis;
-using CompanyWebApi.Contracts.Entities.Base;
-using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
+using System;
 
 namespace CompanyWebApi.Contracts.Entities
 {
     [Serializable]
-    [ExcludeFromCodeCoverage]
-    [JsonObject(IsReference = false)]
     public class Employee : BaseAuditEntity
     {
         [Key]
@@ -17,12 +13,16 @@ namespace CompanyWebApi.Contracts.Entities
         public int EmployeeId { get; set; }
 
         [Required]
+        [StringLength(50, ErrorMessage = "First name cannot be longer than 50 characters.")]
         public string FirstName { get; set; }
 
         [Required]
+        [StringLength(50, ErrorMessage = "Last name cannot be longer than 50 characters.")]
         public string LastName { get; set; }
 
         [Required]
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:dd.MM.yyyy}", ApplyFormatInEditMode = true)]
         public DateTime BirthDate { get; set; }
 
         // Computed column
@@ -31,21 +31,20 @@ namespace CompanyWebApi.Contracts.Entities
         [ForeignKey(nameof(Company))]
         public int CompanyId { get; set; }
 
-        // Navigation property
+        // Inverse navigation property
         public Company Company { get; set; }
 
         [ForeignKey(nameof(Department))]
         public int? DepartmentId { get; set; }
 
-        // Navigation property
+        // Inverse navigation property
         public Department Department { get; set; }
 
-        // Navigation property
+        // Reference navigation property
         public EmployeeAddress EmployeeAddress { get; set; }
 
+        // Reference navigation property
         public User User { get; set; }
-
-        public override string ToString() => $"{EmployeeId}, {FirstName} {LastName}";
 
         private static int CalculateAge(DateTime? birthDate)
         {
