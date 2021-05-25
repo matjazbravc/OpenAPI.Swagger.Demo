@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CompanyWebApi.Tests.Factories;
 using Xunit;
 
 namespace CompanyWebApi.Tests.UnitTests
@@ -20,6 +21,14 @@ namespace CompanyWebApi.Tests.UnitTests
         {
             _logger = factory.Services.GetRequiredService<ILogger<WebApiTestFactory>>();
             _departmentRepository = factory.Services.GetRequiredService<IDepartmentRepository>();
+        }
+
+        [Theory]
+        [MemberData(nameof(DepartmentTestFactory.Departments), MemberType = typeof(DepartmentTestFactory))]
+        public async Task CanAddEmployees(Department department)
+        {
+            var repoDepartment = await _departmentRepository.AddDepartmentAsync(department).ConfigureAwait(false);
+            Assert.True(repoDepartment.DepartmentId > 0);
         }
 
         [Fact]

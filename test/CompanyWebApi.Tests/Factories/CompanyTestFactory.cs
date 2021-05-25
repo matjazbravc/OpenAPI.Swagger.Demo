@@ -17,21 +17,15 @@ namespace CompanyWebApi.Tests.Factories
             {
                 new Company
                 {
-                    Name = "Test Company One",
-                    Created = DateTime.UtcNow,
-                    Modified = DateTime.UtcNow
+                    Name = "Test Company One"
                 },
                 new Company
                 {
-                    Name = "Test Company Two",
-                    Created = DateTime.UtcNow,
-                    Modified = DateTime.UtcNow
+                    Name = "Test Company Two"
                 },
                 new Company
                 {
-                    Name = "Test Company Three",
-                    Created = DateTime.UtcNow,
-                    Modified = DateTime.UtcNow
+                    Name = "Test Company Three"
                 }
             };
     }
