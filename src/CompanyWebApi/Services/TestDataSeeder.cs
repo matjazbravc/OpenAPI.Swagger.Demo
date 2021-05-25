@@ -6,17 +6,24 @@ using System;
 namespace CompanyWebApi.Services
 {
 	/// <summary>
-	/// Class for seeding random data
+	/// Class for seeding test data
 	/// </summary>
-	public static class SeedData
+	public class TestDataSeeder
 	{
-		//https://www.tektutorialshub.com/entity-framework-core-data-seeding/
-		public static void Initialize(ApplicationDbContext context)
+        private readonly ApplicationDbContext _dbContext;
+
+        public TestDataSeeder(ApplicationDbContext dbContext)
+        {
+            _dbContext = dbContext;
+            _dbContext.Database.EnsureDeleted();
+            _dbContext.Database.EnsureCreated();
+		}
+  
+		public void SeedTestData()
 		{
-			// Look for any records
-			if (!context.Companies.Any())
+			if (!_dbContext.Companies.Any())
 			{
-				context.Companies.AddRange(
+				_dbContext.Companies.AddRange(
 					new Company
 					{
 						CompanyId = 1,
@@ -41,9 +48,9 @@ namespace CompanyWebApi.Services
 				);
 			}
 
-			if (!context.Departments.Any())
+			if (!_dbContext.Departments.Any())
 			{
-				context.Departments.AddRange(
+				_dbContext.Departments.AddRange(
 					new Department { CompanyId = 1, DepartmentId = 1, Name = "Logistics" },
 					new Department { CompanyId = 1, DepartmentId = 2, Name = "Administration" },
 					new Department { CompanyId = 1, DepartmentId = 3, Name = "Development" },
@@ -60,9 +67,9 @@ namespace CompanyWebApi.Services
 				);
 			}
 
-			if (!context.Employees.Any())
+			if (!_dbContext.Employees.Any())
 			{
-				context.Employees.AddRange(
+				_dbContext.Employees.AddRange(
 					new Employee
 					{
 						CompanyId = 1,
@@ -132,9 +139,9 @@ namespace CompanyWebApi.Services
                     }
 				);
 
-				if (!context.EmployeeAddresses.Any())
+				if (!_dbContext.EmployeeAddresses.Any())
 				{
-					context.EmployeeAddresses.AddRange(
+					_dbContext.EmployeeAddresses.AddRange(
 						new EmployeeAddress { EmployeeId = 1, Address = "Kentucky, USA" },
 						new EmployeeAddress { EmployeeId = 2, Address = "Berlin, Germany" },
 						new EmployeeAddress { EmployeeId = 3, Address = "Los Angeles, USA" },
@@ -144,9 +151,9 @@ namespace CompanyWebApi.Services
 					);
 				}
 
-				if (!context.Users.Any())
+				if (!_dbContext.Users.Any())
 				{
-					context.Users.AddRange(
+					_dbContext.Users.AddRange(
 						new User { EmployeeId = 1, Username = "johnw", Password = "test", Token = string.Empty },
 						new User { EmployeeId = 2, Username = "mathiasg", Password = "test", Token = string.Empty },
 						new User { EmployeeId = 3, Username = "juliar", Password = "test", Token = string.Empty },
@@ -156,7 +163,7 @@ namespace CompanyWebApi.Services
 					);
 				}
 
-				context.SaveChanges();
+				_dbContext.SaveChanges();
 			}
 		}
 	}

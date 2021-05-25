@@ -82,6 +82,11 @@ namespace CompanyWebApi
 
             services.AddRepositoryFactory();
 
+            ConfigureDatabaseServices(services);
+        }
+
+        protected virtual void ConfigureDatabaseServices(IServiceCollection services)
+        {
             // Add Database Context
             services.AddDbContext<ApplicationDbContext>(options =>
             {
@@ -94,15 +99,13 @@ namespace CompanyWebApi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IConfiguration config)
+        public virtual void Configure(IApplicationBuilder app, IWebHostEnvironment env, IConfiguration config)
         {
-            // Configure Database context
-            using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()?.CreateScope())
+            using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
-                var context = serviceScope?.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                context?.Database.EnsureDeleted();
-                context?.Database.EnsureCreated();
-                SeedData.Initialize(context);
+                var seeder = serviceScope.ServiceProvider.GetRequiredService<TestDataSeeder>();
+                // Seed test data
+                seeder.SeedTestData();
             }
 
             // Needed for a ReDoc logo
@@ -253,6 +256,7 @@ namespace CompanyWebApi
         /// <param name="services"></param>
         protected virtual void RegisterServices(IServiceCollection services)
         {
+            services.AddTransient<TestDataSeeder>();
             services.AddScoped<ValidModelStateAsyncActionFilter>();
 
             // Register middlewares

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System;
 using System.Linq;
+using CompanyWebApi.Tests.Factories;
 using Xunit;
 
 namespace CompanyWebApi.Tests.UnitTests
@@ -18,8 +19,17 @@ namespace CompanyWebApi.Tests.UnitTests
 
         public CompanyRepositoryTests(WebApiTestFactory factory)
         {
+            // Constructor is called for every test
             _logger = factory.Services.GetRequiredService<ILogger<WebApiTestFactory>>();
             _companyRepository = factory.Services.GetRequiredService<ICompanyRepository>();
+        }
+
+        [Theory]
+        [MemberData(nameof(CompanyTestFactory.Companies), MemberType = typeof(CompanyTestFactory))]
+        public async Task CanAddCompanies(Company company)
+        {
+            var repoCompany = await _companyRepository.AddCompanyAsync(company).ConfigureAwait(false);
+            Assert.True(repoCompany.CompanyId > 0);
         }
 
         [Fact]

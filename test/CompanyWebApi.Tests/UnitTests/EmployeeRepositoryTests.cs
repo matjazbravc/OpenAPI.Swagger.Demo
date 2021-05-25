@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using CompanyWebApi.Tests.Factories;
 using Xunit;
 
 namespace CompanyWebApi.Tests.UnitTests
@@ -20,6 +21,23 @@ namespace CompanyWebApi.Tests.UnitTests
         {
             _logger = factory.Services.GetRequiredService<ILogger<WebApiTestFactory>>();
             _employeeRepository = factory.Services.GetRequiredService<IEmployeeRepository>();
+        }
+
+        [Theory]
+        [MemberData(nameof(EmployeeTestFactory.Employees), MemberType = typeof(EmployeeTestFactory))]
+        public async Task CanAddEmployees(Employee employee)
+        {
+            var repoEmployee = await _employeeRepository.AddEmployeeAsync(employee).ConfigureAwait(false);
+            Assert.True(repoEmployee.EmployeeId > 0);
+        }
+
+        [Theory]
+        [MemberData(nameof(EmployeeTestFactory.Employees), MemberType = typeof(EmployeeTestFactory))]
+        public async Task IsAdult(Employee employee)
+        {
+            var repoEmployee = await _employeeRepository.AddEmployeeAsync(employee).ConfigureAwait(false);
+            var isAdult = EmployeeTestFactory.IsAdult(repoEmployee);
+            Assert.True(isAdult);
         }
 
         [Fact]

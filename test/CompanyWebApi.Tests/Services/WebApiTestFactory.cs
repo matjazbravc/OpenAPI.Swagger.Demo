@@ -3,6 +3,7 @@ using CompanyWebApi.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,9 @@ namespace CompanyWebApi.Tests.Services
     /// </summary>
     public class WebApiTestFactory : WebApplicationFactory<Startup>
     {
+        private readonly InMemoryDatabaseRoot _databaseRoot = new();
+        private readonly string _connectionString = Guid.NewGuid().ToString();
+
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder
@@ -40,27 +44,22 @@ namespace CompanyWebApi.Tests.Services
                     // Add ApplicationDbContext using an in-memory database for testing
                     services.AddDbContext<ApplicationDbContext>(options =>
                     {
-                        options.UseInMemoryDatabase("InMemoryDatabaseTest");
+                        options.UseInMemoryDatabase(_connectionString, _databaseRoot);
                         options.UseInternalServiceProvider(serviceProvider);
                     });
 
-                    // Build the service provider
-                    var sp = services.BuildServiceProvider();
-
                     // Create a scope to obtain a reference to the database context (ApplicationDbContext)
-                    using (var scope = sp.CreateScope())
+                    using (var serviceScope = services.BuildServiceProvider().CreateScope())
                     {
-                        var scopedServices = scope.ServiceProvider;
-                        var dbContext = scopedServices.GetRequiredService<ApplicationDbContext>();
-                        var logger = scopedServices.GetRequiredService<ILogger<WebApiTestFactory>>();
-
-                        // Ensure the database is created
-                        dbContext.Database.EnsureCreated();
-
+                        var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<WebApiTestFactory>>();
                         try
                         {
-                            // Seed the database with test data
-                            SeedData.Initialize(dbContext);
+                            var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                            dbContext.Database.EnsureCreated();
+
+                            // Seed test data
+                            var seeder = serviceScope.ServiceProvider.GetRequiredService<TestDataSeeder>();
+                            seeder.SeedTestData();
                         }
                         catch (Exception ex)
                         {
