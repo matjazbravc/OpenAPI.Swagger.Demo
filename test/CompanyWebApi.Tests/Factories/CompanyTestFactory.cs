@@ -1,5 +1,4 @@
 ﻿using CompanyWebApi.Contracts.Entities;
-using System;
 using Xunit;
 
 namespace CompanyWebApi.Tests.Factories
@@ -15,18 +14,9 @@ namespace CompanyWebApi.Tests.Factories
         public static TheoryData<Company> Companies =>
             new()
             {
-                new Company
-                {
-                    Name = "Test Company One"
-                },
-                new Company
-                {
-                    Name = "Test Company Two"
-                },
-                new Company
-                {
-                    Name = "Test Company Three"
-                }
+                new Company { Name = "Test Company 1" },
+                new Company { Name = "Test Company 2" },
+                new Company { Name = "Test Company 3" }
             };
     }
 }

@@ -29,24 +29,24 @@ namespace CompanyWebApi.Tests.Factories
                 {
                     CompanyId = 1,
                     DepartmentId = 1,
-                    FirstName = "Johanna",
-                    LastName = "Clinger",
+                    FirstName = "FirstName 1",
+                    LastName = "LastName 1",
                     BirthDate = new DateTime(1991, 8, 7)
                 },
                 new Employee
                 {
                     CompanyId = 2,
                     DepartmentId = 4,
-                    FirstName = "Gert",
-                    LastName = "Weinsdorf",
+                    FirstName = "FirstName 2",
+                    LastName = "LastName 2",
                     BirthDate = new DateTime(1997, 10, 12)
                 },
                 new Employee
                 {
                     CompanyId = 3,
                     DepartmentId = 1,
-                    FirstName = "Felix",
-                    LastName = "Buntrock",
+                    FirstName = "FirstName 3",
+                    LastName = "LastName 3",
                     BirthDate = new DateTime(1999, 11, 20)
                 }
             };

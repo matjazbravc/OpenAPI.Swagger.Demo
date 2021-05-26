@@ -27,23 +27,17 @@ namespace CompanyWebApi.Services
 					new Company
 					{
 						CompanyId = 1,
-						Name = "Company One",
-						Created = DateTime.UtcNow,
-						Modified = DateTime.UtcNow
+						Name = "Company One"
 					},
 					new Company
 					{
 						CompanyId = 2,
-						Name = "Company Two",
-						Created = DateTime.UtcNow,
-						Modified = DateTime.UtcNow
+						Name = "Company Two"
 					},
 					new Company
 					{
 						CompanyId = 3,
-						Name = "Company Three",
-						Created = DateTime.UtcNow,
-						Modified = DateTime.UtcNow
+						Name = "Company Three"
 					}
 				);
 			}
@@ -54,12 +48,10 @@ namespace CompanyWebApi.Services
 					new Department { CompanyId = 1, DepartmentId = 1, Name = "Logistics" },
 					new Department { CompanyId = 1, DepartmentId = 2, Name = "Administration" },
 					new Department { CompanyId = 1, DepartmentId = 3, Name = "Development" },
-
                     new Department { CompanyId = 2, DepartmentId = 4, Name = "Sales" },
                     new Department { CompanyId = 2, DepartmentId = 5, Name = "Marketing" },
                     new Department { CompanyId = 3, DepartmentId = 6, Name = "Customer support" },
-
-                    new Department { CompanyId = 3, DepartmentId = 7, Name = "Research and Development" },
+					new Department { CompanyId = 3, DepartmentId = 7, Name = "Research and Development" },
                     new Department { CompanyId = 3, DepartmentId = 8, Name = "Purchasing" },
                     new Department { CompanyId = 3, DepartmentId = 9, Name = "Human Resource Management" },
                     new Department { CompanyId = 3, DepartmentId = 10, Name = "Accounting and Finance" },
@@ -77,9 +69,7 @@ namespace CompanyWebApi.Services
 						EmployeeId = 1,
 						FirstName = "John",
 						LastName = "Whyne",
-						BirthDate = new DateTime(1991, 8, 7),
-						Created = DateTime.UtcNow,
-						Modified = DateTime.UtcNow
+						BirthDate = new DateTime(1991, 8, 7)
 					},
 					new Employee
 					{
@@ -88,9 +78,7 @@ namespace CompanyWebApi.Services
 						EmployeeId = 2,
 						FirstName = "Mathias",
 						LastName = "Gernold",
-						BirthDate = new DateTime(1997, 10, 12),
-						Created = DateTime.UtcNow,
-						Modified = DateTime.UtcNow
+						BirthDate = new DateTime(1997, 10, 12)
 					},
 					new Employee
 					{
@@ -99,9 +87,7 @@ namespace CompanyWebApi.Services
 						EmployeeId = 3,
 						FirstName = "Julia",
 						LastName = "Reynolds",
-						BirthDate = new DateTime(1955, 12, 16),
-						Created = DateTime.UtcNow,
-						Modified = DateTime.UtcNow
+						BirthDate = new DateTime(1955, 12, 16)
 					},
 					new Employee
 					{
@@ -110,9 +96,7 @@ namespace CompanyWebApi.Services
 						EmployeeId = 4,
 						FirstName = "Alois",
 						LastName = "Mock",
-						BirthDate = new DateTime(1935, 2, 9),
-						Created = DateTime.UtcNow,
-						Modified = DateTime.UtcNow
+						BirthDate = new DateTime(1935, 2, 9)
 					},
 					new Employee
 					{
@@ -121,9 +105,7 @@ namespace CompanyWebApi.Services
 						EmployeeId = 5,
 						FirstName = "Gertraud",
 						LastName = "Bochold",
-						BirthDate = new DateTime(2001, 3, 4),
-						Created = DateTime.UtcNow,
-						Modified = DateTime.UtcNow
+						BirthDate = new DateTime(2001, 3, 4)
 					}
                     ,
                     new Employee
@@ -133,9 +115,7 @@ namespace CompanyWebApi.Services
                         EmployeeId = 6,
                         FirstName = "Alan",
                         LastName = "Ford",
-                        BirthDate = new DateTime(1984, 6, 15),
-                        Created = DateTime.UtcNow,
-                        Modified = DateTime.UtcNow
+                        BirthDate = new DateTime(1984, 6, 15)
                     }
 				);
 

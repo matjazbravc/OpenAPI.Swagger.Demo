@@ -14,19 +14,9 @@ namespace CompanyWebApi.Tests.Factories
         public static TheoryData<Department> Departments =>
             new()
             {
-                new Department { CompanyId = 1, Name = "Test Logistics" },
-                new Department { CompanyId = 1, Name = "Test Administration" },
-                new Department { CompanyId = 1, Name = "Test Development" },
-
-                new Department { CompanyId = 2, Name = "Test Sales" },
-                new Department { CompanyId = 2, Name = "Test Marketing" },
-                new Department { CompanyId = 3, Name = "Test Customer support" },
-
-                new Department { CompanyId = 3, Name = "Test Research and Development" },
-                new Department { CompanyId = 3, Name = "Test Purchasing" },
-                new Department { CompanyId = 3, Name = "Test Human Resource Management" },
-                new Department { CompanyId = 3, Name = "Test Accounting and Finance" },
-                new Department { CompanyId = 3, Name = "Test Production" }
+                new Department { CompanyId = 1, Name = "Test Department 1" },
+                new Department { CompanyId = 1, Name = "Test Department 2" },
+                new Department { CompanyId = 1, Name = "Test Department 3" }
             };
     }
 }
