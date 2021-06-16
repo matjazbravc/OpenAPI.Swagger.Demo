@@ -106,7 +106,7 @@ namespace CompanyWebApi.Controllers.V2
         ///     }
         /// </remarks>
         /// <param name="user">UserCreateDto model</param>
-        /// <param name="version">API Version</param>
+        /// <param name="version">API AssemblyVersion</param>
         [SwaggerResponse(StatusCodes.Status201Created, Type = typeof(UserDto), Description = "Returns a new user")]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "The user with EmployeeId {user.EmployeeId} already exists")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "The employee with {EmployeeId} was not found")]
@@ -324,7 +324,7 @@ namespace CompanyWebApi.Controllers.V2
         ///     }
         /// </remarks>
         /// <param name="userToUpdate"><see cref="UserUpdateDto"/></param>
-        /// <param name="version">API Version</param>
+        /// <param name="version">API AssemblyVersion</param>
         [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(UserDto), Description = "Return updated user")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "The employee was not found")]
         [HttpPut("update", Name = "UpdateUserV2")]

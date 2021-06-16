@@ -55,7 +55,7 @@ namespace CompanyWebApi.Services.Swagger.Filters
                 }
             };
 
-            // Sort in ascending order by Name
+            // Sort in ascending order by AssemblyName
             swaggerDoc.Tags = tags.OrderBy(x => x.Name).ToList();
         }
     }
