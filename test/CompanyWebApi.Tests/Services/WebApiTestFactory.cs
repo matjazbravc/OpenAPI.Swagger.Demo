@@ -58,8 +58,8 @@ namespace CompanyWebApi.Tests.Services
                             dbContext.Database.EnsureCreated();
 
                             // Seed test data
-                            var seeder = serviceScope.ServiceProvider.GetRequiredService<TestDataSeeder>();
-                            seeder.SeedTestData();
+                            var seeder = serviceScope.ServiceProvider.GetRequiredService<DbInitializer>();
+                            seeder.Initialize();
                         }
                         catch (Exception ex)
                         {

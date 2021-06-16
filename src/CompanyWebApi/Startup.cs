@@ -101,13 +101,6 @@ namespace CompanyWebApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public virtual void Configure(IApplicationBuilder app, IWebHostEnvironment env, IConfiguration config)
         {
-            using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
-            {
-                var seeder = serviceScope.ServiceProvider.GetRequiredService<TestDataSeeder>();
-                // Seed test data
-                seeder.SeedTestData();
-            }
-
             // Needed for a ReDoc logo
             const string LOGO_FILE_PATH = "wwwroot/swagger";
             var fileprovider = new PhysicalFileProvider(Path.Combine(env.ContentRootPath, LOGO_FILE_PATH));
@@ -256,7 +249,7 @@ namespace CompanyWebApi
         /// <param name="services"></param>
         protected virtual void RegisterServices(IServiceCollection services)
         {
-            services.AddTransient<TestDataSeeder>();
+            services.AddTransient<DbInitializer>();
             services.AddScoped<ValidModelStateAsyncActionFilter>();
 
             // Register middlewares
