@@ -162,12 +162,17 @@ namespace CompanyWebApi
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
+            app.UseEndpoints(configure =>
             {
-                //Add health check endpoint
-                endpoints.MapHealthChecks("/healthz");
-                // Adds enpoints for controller actions without specifyinf any routes
-                endpoints.MapControllers();
+	            configure.MapControllers();
+	            configure.MapDefaultControllerRoute();
+	            configure.MapHealthChecks("health");
+	            // Redirect root to Swagger UI
+	            configure.MapGet("", context =>
+	            {
+		            context.Response.Redirect("./swagger/index.html", permanent: false);
+		            return Task.FromResult(0);
+	            });
             });
         }
 
